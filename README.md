@@ -21,15 +21,18 @@ npm install
 
 ## Initialize
 
-### Option A: start with demo memories
+### Option A: write your first memory
 
 ```bash
-npm run seed
-npm run decay
-npm run stats
+node bin/cli.mjs write \
+  --type decision \
+  --domain infra \
+  --summary "Chose PostgreSQL for production database" \
+  --ttl permanent \
+  --confidence 0.95
 ```
 
-### Option B: import your own markdown files
+### Option B: import existing markdown files
 
 ```bash
 node scripts/import-markdown.mjs /path/to/markdown-dir

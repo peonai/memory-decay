@@ -52,15 +52,6 @@ Bad:
 
 ## Commands
 
-### Initialize demo data
-
-```bash
-npm install
-node scripts/seed-demo.mjs
-node bin/cli.mjs decay
-node bin/cli.mjs stats
-```
-
 ### Write a memory
 
 ```bash
@@ -143,7 +134,6 @@ memory-decay/
 │   ├── search.mjs
 │   └── compress.mjs
 └── scripts/
-    ├── seed-demo.mjs
     ├── import-markdown.mjs
     ├── daily-decay.sh
     └── install-cron.sh
