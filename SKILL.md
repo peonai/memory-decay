@@ -1,61 +1,65 @@
 ---
 name: memory-decay
-description: Human-like fuzzy memory system with gradient decay for AI agents. Manage agent memories with birth tagging (type/ttl/confidence), time-based tier demotion (fresh→recent→faded→ghost→expired), and hybrid retrieval (TF-IDF keyword + semantic embedding). Use when agents need to write structured memories, search past decisions with fuzzy queries, run periodic decay maintenance, view memory stats, or import existing memory files. Also use when asked about memory management, forgetting, recall accuracy, or memory lifecycle.
+description: File-based memory lifecycle workflow for AI agents. Manage durable memories with birth tagging (type/ttl/confidence), time-based decay (fresh→recent→faded→ghost→expired), keyword retrieval, layered display, and cron-friendly maintenance scripts. Use when agents need a practical memory process, periodic forgetting behavior, structured memory writing, search/scan/focus workflows, or markdown import without depending on external models or APIs.
 ---
 
 # Memory Decay
 
-Simulate human-like fuzzy memory for AI agents. Memories fade over time — recent ones are vivid, old ones become hazy, expired ones disappear from search.
+Use this skill to give an agent a simple, durable memory workflow without external services.
 
-## Core Mechanisms
+## What this skill provides
 
-### 1. Birth Tagging
+- Structured memory writing with `type`, `ttl`, and `confidence`
+- Time-based decay from `fresh` to `expired`
+- Keyword retrieval with domain scanning
+- Layered display for older memories
+- Import and maintenance scripts
+- Daily cron installation helper
 
-Every memory gets metadata at write time:
+## Write format
 
-```
-type:       decision | experiment | reference | status | temporary
-ttl:        3d | 7d | 30d | permanent
+When writing a memory, include:
+
+```text
+type: decision | experiment | reference | status | temporary
+ttl: 3d | 7d | 30d | permanent
 confidence: 0.0-1.0
 ```
 
-### 2. Time-Based Decay
+Prefer summaries that are self-contained and specific.
 
-| Age | Tier | Display |
-|-----|------|---------|
-| 0-3d | fresh 🟢 | Full content |
-| 4-14d | recent 🔵 | Full content |
-| 15-30d | faded 🟡 | Summary + [archived] |
-| 30d+ | ghost 👻 | [archived] first 15 chars... |
-| past ttl | expired | Hidden from search |
+Good:
+- `Chose Stripe Checkout for hosted billing`
+- `SSL certificate expires March 25 and needs renewal`
+- `Tried Plasmo, switched back to vanilla MV3`
 
-`permanent` memories never decay.
+Bad:
+- `Continuing...`
+- `I am an assistant`
+- `/home/user/project`
 
-### 3. Hybrid Retrieval
+## Decay model
 
-- Keyword: TF-IDF + CJK bigram tokenization + domain alias boost
-- Semantic: Embedding model via OpenAI-compatible API
-- Fusion: keyword 40% + semantic 60%, weighted by tier
+| Age | Tier | Behavior |
+|-----|------|----------|
+| 0-3d | fresh | full display |
+| 4-14d | recent | full display |
+| 15-30d | faded | summary + archived note |
+| 30d+ | ghost | archived preview only |
+| past ttl | expired | excluded from search |
 
-## Quick Start
+`permanent` memories do not decay.
+
+## Commands
+
+### Initialize demo data
 
 ```bash
-cd <skill-dir>
 npm install
-
-# Seed demo data
 node scripts/seed-demo.mjs
 node bin/cli.mjs decay
-
-# Search
-node bin/cli.mjs search "payment platform"
-node bin/cli.mjs hybrid "that billing thing we set up"
-
-# Stats
 node bin/cli.mjs stats
 ```
-
-## CLI Reference
 
 ### Write a memory
 
@@ -63,26 +67,16 @@ node bin/cli.mjs stats
 node bin/cli.mjs write \
   --type decision \
   --domain payment \
-  --summary "Chose Stripe over Paddle for checkout" \
+  --summary "Chose Stripe Checkout for hosted billing" \
   --ttl permanent \
   --confidence 0.95 \
-  --body "Stripe Checkout Session: hosted page, multi-language, reliable webhooks."
+  --body "Hosted checkout reduces PCI burden and simplifies localization."
 ```
 
-### Search
+### Retrieve memories
 
 ```bash
-# Keyword search
-node bin/cli.mjs search "webhook"
-
-# Semantic search (requires embedding index)
-node bin/cli.mjs embed
-node bin/cli.mjs semantic "how did we handle payments"
-
-# Hybrid search (recommended)
-node bin/cli.mjs hybrid "that billing thing"
-
-# Browse by domain
+node bin/cli.mjs search "billing"
 node bin/cli.mjs scan "deploy"
 node bin/cli.mjs focus infra
 ```
@@ -90,88 +84,52 @@ node bin/cli.mjs focus infra
 ### Maintenance
 
 ```bash
-# Preview decay changes
-node bin/cli.mjs decay --dry-run
-
-# Apply decay
 node bin/cli.mjs decay
-
-# View stats
+node bin/cli.mjs decay --dry-run
 node bin/cli.mjs stats
+bash scripts/install-cron.sh
 ```
 
-## Embedding Configuration
-
-Semantic search requires an OpenAI-compatible embedding API. Set via environment variables:
+## Import markdown
 
 ```bash
-export EMBED_API_BASE=https://api.openai.com/v1   # or any compatible endpoint
-export EMBED_API_KEY=sk-xxx
-export EMBED_MODEL=text-embedding-3-small          # or any model
+node scripts/import-markdown.mjs /path/to/markdown-dir
+node bin/cli.mjs decay
 ```
 
-Without embedding config, keyword search and hybrid search (keyword portion only) still work.
+Imported files become `reference` memories in the `general` domain by default. Re-tag manually if needed.
 
-## LLM Summary Generation
+## Agent workflow
 
-When importing bulk memories, use the LLM summary layer for high-quality summaries. Configure:
+Write memory when any of these is true:
 
-```bash
-export LLM_API_BASE=http://localhost:3456/v1   # OpenAI-compatible endpoint
-export LLM_API_KEY=your-key
-export LLM_MODEL=gpt-4o-mini                   # or any chat model
-```
+1. The user explicitly asks to remember something
+2. A session is ending and a useful conclusion would be lost
+3. A stable fact, decision, preference, or status emerged
+4. A reusable workflow was discovered
 
-Import script: `node scripts/import-markdown.mjs <directory> [--llm-summary]`
+Retrieve memory like this:
 
-## Memory Quality Guidelines
+- direct lookup → `search`
+- broad exploration → `scan`
+- domain drill-down → `focus`
 
-Good summaries (high information density):
-- "Chose Stripe over Paddle: hosted checkout, multi-language, reliable webhooks"
-- "Blog i18n: English .en.md suffix, Hugo native i18n support"
-- "Fixed mobile layout: newspaper.css 760px breakpoint, title clamp 1.8rem"
+Run `decay` daily.
 
-Bad summaries (noise):
-- "I am an AI assistant" (self-introduction, not a memory)
-- "OK, continuing..." (chat fragment)
-- "/home/user/projects/..." (bare path, no context)
+## Files
 
-Principle: every memory must be a self-contained statement with what + why + outcome.
-
-## Integration with Agent Workflows
-
-### Write triggers (write memory when any is true)
-
-1. User explicitly asks to remember something
-2. Session ending — key conclusion would be lost
-3. Stable fact, preference, or decision emerged
-4. Reusable workflow discovered
-
-### Retrieval patterns
-
-- Precise query → `search "Stripe webhook"`
-- Fuzzy recall → `hybrid "that payment thing"`
-- Explore domain → `scan "deploy"` then `focus infra`
-
-### Periodic maintenance
-
-Run `node bin/cli.mjs decay` daily (cron or agent heartbeat).
-
-## File Structure
-
-```
+```text
 memory-decay/
-├── SKILL.md              # This file
-├── bin/cli.mjs           # CLI entry point
+├── SKILL.md
+├── bin/cli.mjs
 ├── lib/
-│   ├── store.mjs         # File system storage
-│   ├── decay.mjs         # Decay engine
-│   ├── search.mjs        # TF-IDF keyword search
-│   ├── embed.mjs         # Semantic embedding
-│   ├── hybrid.mjs        # Hybrid fusion search
-│   ├── compress.mjs      # Layered display
-│   └── summarize.mjs     # LLM summary generation
+│   ├── store.mjs
+│   ├── decay.mjs
+│   ├── search.mjs
+│   └── compress.mjs
 └── scripts/
-    ├── seed-demo.mjs        # Generate demo memories
-    └── import-markdown.mjs  # Import from markdown directory
+    ├── seed-demo.mjs
+    ├── import-markdown.mjs
+    ├── daily-decay.sh
+    └── install-cron.sh
 ```

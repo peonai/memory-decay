@@ -7,13 +7,13 @@
     "memory-decay": "./bin/cli.mjs"
   },
   "scripts": {
-    "build": "echo 'no build needed, pure mjs'",
-    "seed": "node bin/cli.mjs seed",
-    "test": "node bin/cli.mjs stats"
+    "seed": "node scripts/seed-demo.mjs",
+    "decay": "node bin/cli.mjs decay",
+    "stats": "node bin/cli.mjs stats",
+    "install-cron": "bash scripts/install-cron.sh"
   },
   "dependencies": {
     "commander": "^12.0.0",
-    "fastembed": "^2.1.0",
     "uuid": "^9.0.0"
   }
 }

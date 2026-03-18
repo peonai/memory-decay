@@ -51,7 +51,7 @@ const templates = [
   { type: 'experiment', domain: 'chrome-ext', summary: 'Tried Plasmo framework, chose vanilla MV3 instead', ttl: '7d', confidence: 0.5, body: 'Plasmo too heavy, debugging difficult, HMR frequently broken. Vanilla MV3 + Vite build more controllable.', daysAgo: 110 },
   { type: 'reference', domain: 'chrome-ext', summary: 'Content Script injection timing: document_idle safest', ttl: '30d', confidence: 0.9, body: '"run_at": "document_idle" waits for full DOM load, avoids conflicts with page scripts.', daysAgo: 55 },
   { type: 'decision', domain: 'chrome-ext', summary: 'Extension data sync: chrome.storage.sync, 100KB limit', ttl: 'permanent', confidence: 0.85, body: 'sync for cross-device, but 100KB limit. Large data uses chrome.storage.local (10MB limit).', daysAgo: 88 },
-  { type: 'status', domain: 'chrome-ext', summary: 'Repurpose extension under review, 5 days waiting', ttl: '7d', confidence: 0.7, body: 'First submission, typically 3-5 days. If over 7 days, contact Chrome Web Store support.', daysAgo: 6 },
+  { type: 'status', domain: 'chrome-ext', summary: 'Browser utility extension under review, 5 days waiting', ttl: '7d', confidence: 0.7, body: 'First submission, typically 3-5 days. If over 7 days, contact Chrome Web Store support.', daysAgo: 6 },
 
   // ── Design (6) ──
   { type: 'decision', domain: 'design', summary: 'Design system: Tailwind CSS + shadcn/ui components', ttl: 'permanent', confidence: 0.95, body: 'Tailwind atomic CSS for dev speed, shadcn/ui highly customizable (copy code, not dependency).', daysAgo: 100 },

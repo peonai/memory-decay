@@ -5,8 +5,6 @@ import { v4 as uuid } from 'uuid';
 import { ensureDirs, readIndex, getStoreRoot, writeMemory as storeWrite, countFiles } from '../lib/store.mjs';
 import { runDecay } from '../lib/decay.mjs';
 import { scan as doScan, focus as doFocus, search as doSearch } from '../lib/search.mjs';
-import { buildIndex, semanticSearch } from '../lib/embed.mjs';
-import { hybridSearch } from '../lib/hybrid.mjs';
 import { displaySummary } from '../lib/compress.mjs';
 
 const program = new Command();
@@ -85,7 +83,7 @@ program
 // ── search ──
 program
   .command('search <query>')
-  .description('Direct search — top-k matching memories')
+  .description('Keyword search — top-k matching memories')
   .option('-n, --limit <n>', 'Max results', '5')
   .action((query, opts) => {
     const results = doSearch(query, parseInt(opts.limit));
@@ -150,63 +148,6 @@ program
     for (const [d, n] of Object.entries(domains).sort((a, b) => b[1] - a[1])) console.log(`  ${d}: ${n}`);
     console.log(`\nBy type:`);
     for (const [t, n] of Object.entries(types)) console.log(`  ${t}: ${n}`);
-  });
-
-// ── embed ──
-program
-  .command('embed')
-  .description('Build embedding index for semantic search')
-  .action(async () => {
-    ensureDirs();
-    await buildIndex();
-  });
-
-// ── semantic ──
-program
-  .command('semantic <query>')
-  .description('Semantic search — embedding-based fuzzy retrieval')
-  .option('-n, --limit <n>', 'Max results', '5')
-  .action(async (query, opts) => {
-    ensureDirs();
-    const results = await semanticSearch(query, parseInt(opts.limit));
-    if (results.length === 0) {
-      console.log('🔍 No semantic matches.');
-      return;
-    }
-    console.log(`🧠 Semantic search: "${query}"\n`);
-    for (const e of results) {
-      const date = e.created.slice(0, 10);
-      const tierIcon = { fresh: '🟢', recent: '🔵', faded: '🟡', ghost: '👻' }[e.tier] || '⚪';
-      const displayText = displaySummary(e.summary, e.tier);
-      console.log(`  ${tierIcon} [${e.tier}] ${date} | ${e.domain} | sim: ${(e.rawSim * 100).toFixed(1)}% | score: ${(e.score * 100).toFixed(1)}%`);
-      console.log(`     ${displayText}`);
-      if (e.tier === 'faded') console.log(`     [detailed content archived]`);
-    }
-  });
-
-// ── hybrid ──
-program
-  .command('hybrid <query>')
-  .description('Hybrid search — keyword + semantic fusion')
-  .option('-n, --limit <n>', 'Max results', '5')
-  .action(async (query, opts) => {
-    ensureDirs();
-    const results = await hybridSearch(query, parseInt(opts.limit));
-    if (results.length === 0) {
-      console.log('🔍 No hybrid matches.');
-      return;
-    }
-    console.log(`🔀 Hybrid search: "${query}"\n`);
-    for (const e of results) {
-      const date = e.created.slice(0, 10);
-      const tierIcon = { fresh: '🟢', recent: '🔵', faded: '🟡', ghost: '👻' }[e.tier] || '⚪';
-      const kw = e.kwNorm ? (e.kwNorm * 100).toFixed(0) : '0';
-      const sem = e.semNorm ? (e.semNorm * 100).toFixed(0) : '0';
-      const displayText = displaySummary(e.summary, e.tier);
-      console.log(`  ${tierIcon} [${e.tier}] ${date} | ${e.domain} | hybrid: ${(e.hybridScore * 100).toFixed(0)}% (kw:${kw} sem:${sem})`);
-      console.log(`     ${displayText}`);
-      if (e.tier === 'faded') console.log(`     [detailed content archived]`);
-    }
   });
 
 program.parse();
