@@ -1,6 +1,6 @@
 ---
 name: memory-decay
-description: File-based memory lifecycle workflow for AI agents. Manage durable memories with birth tagging (type/ttl/confidence), time-based decay (fresh→recent→faded→ghost→expired), keyword retrieval, layered display, and cron-friendly maintenance scripts. Use when agents need a practical memory process, periodic forgetting behavior, structured memory writing, search/scan/focus workflows, or markdown import without depending on external models or APIs.
+description: File-based memory lifecycle workflow for AI agents. Manage durable memories with birth tagging (type/ttl/confidence), time-based decay (fresh→recent→faded→ghost→expired), keyword retrieval, layered display, and cron-friendly maintenance scripts. Includes write policy, retrieval behavior rules, and anti-patterns from production use. Use when agents need a practical memory process without depending on external models or APIs.
 ---
 
 # Memory Decay
@@ -13,18 +13,51 @@ Use this skill to give an agent a simple, durable memory workflow without extern
 - Time-based decay from `fresh` to `expired`
 - Keyword retrieval with domain scanning
 - Layered display for older memories
+- Write policy with trigger rules and anti-patterns
+- Retrieval behavior rules based on metadata
 - Import and maintenance scripts
 - Daily cron installation helper
 
 ## Write format
 
-When writing a memory, include:
+Every memory gets metadata at write time:
 
 ```text
-type: decision | experiment | reference | status | temporary
-ttl: 3d | 7d | 30d | permanent
+type:       decision | experiment | reference | status | temporary
+ttl:        3d | 7d | 30d | permanent
 confidence: 0.0-1.0
 ```
+
+Type guide:
+- `decision` — architecture choices, technical direction, product decisions (long-lived)
+- `experiment` — exploratory attempts, may be discarded soon
+- `reference` — factual info: paths, configs, API details
+- `status` — current state of a project or task, will be superseded
+- `temporary` — short-lived context, likely useless in a few days
+
+TTL defaults to `30d` if not specified.
+
+Confidence guide:
+- Verified facts → 0.9+
+- Unverified or inferred → 0.5-0.7
+- Pure experiment → 0.3-0.5
+
+### Inline meta tag (for markdown-based memory)
+
+When writing memory directly to markdown files (not via CLI), include an inline meta comment as the first line of each block:
+
+```markdown
+<!-- meta: type=decision, ttl=permanent, confidence=0.95 -->
+Chose PostgreSQL for production: concurrency, full-text search, mature ecosystem.
+
+<!-- meta: type=experiment, ttl=7d, confidence=0.4 -->
+Tried landing page under /tmp/test-landing/, structure wrong, likely discarded.
+
+<!-- meta: type=reference, ttl=30d, confidence=0.8 -->
+API rate limit: 100 req/min per IP, configured via express-rate-limit.
+```
+
+### Summary quality
 
 Prefer summaries that are self-contained and specific.
 
@@ -37,6 +70,37 @@ Bad:
 - `Continuing...`
 - `I am an assistant`
 - `/home/user/project`
+
+Every memory should be a self-contained statement with what + why + outcome.
+
+## Write triggers
+
+Write memory only when at least one of these is true:
+
+1. The user explicitly asks to remember something
+2. The session is ending and a key conclusion would otherwise be lost
+3. A stable fact, decision, preference, or status has become durable
+4. A reusable workflow or troubleshooting process was discovered
+
+If none of these apply, do not write memory.
+
+## Anti-patterns
+
+Do not:
+- Store one-off chat noise as durable memory
+- Create a new file when appending to an existing one is enough
+- Write both a summary and a full copy of the same content
+- Treat archive or snapshot directories as active memory
+- Write memory "just in case" — uncertainty is not a trigger
+
+## Retrieval behavior
+
+When retrieving memories, respect metadata:
+
+- `type=experiment` past its `ttl` → treat as expired, do not use as basis for action
+- `confidence < 0.5` → verify before acting (check if file exists, API is reachable, etc.)
+- `type=temporary` past its `ttl` → ignore entirely
+- `type=decision` with `ttl=permanent` → trust unless explicitly superseded
 
 ## Decay model
 
@@ -72,6 +136,11 @@ node bin/cli.mjs scan "deploy"
 node bin/cli.mjs focus infra
 ```
 
+Retrieval patterns:
+- Precise query → `search`
+- Broad exploration → `scan`
+- Domain drill-down → `focus`
+
 ### Maintenance
 
 ```bash
@@ -80,6 +149,8 @@ node bin/cli.mjs decay --dry-run
 node bin/cli.mjs stats
 bash scripts/install-cron.sh
 ```
+
+Run `decay` daily.
 
 ## Import markdown
 
@@ -105,28 +176,12 @@ Create `store/config.json` to customize search behavior:
 
 Domain aliases boost search relevance when a query matches an alias. This is entirely optional — keyword search works fine without it.
 
-## Agent workflow
-
-Write memory when any of these is true:
-
-1. The user explicitly asks to remember something
-2. A session is ending and a useful conclusion would be lost
-3. A stable fact, decision, preference, or status emerged
-4. A reusable workflow was discovered
-
-Retrieve memory like this:
-
-- direct lookup → `search`
-- broad exploration → `scan`
-- domain drill-down → `focus`
-
-Run `decay` daily.
-
 ## Files
 
 ```text
 memory-decay/
 ├── SKILL.md
+├── README.md
 ├── bin/cli.mjs
 ├── lib/
 │   ├── store.mjs
