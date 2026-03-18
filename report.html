@@ -53,7 +53,7 @@
 <body>
 
 <h1>🧠 Memory Decay — 模糊检索测试报告</h1>
-<p class="subtitle">模拟人类模糊记忆的检索准确度测试 · 2026-03-18 10:40</p>
+<p class="subtitle">模拟人类模糊记忆的检索准确度测试 · 2026-03-18 10:51</p>
 
 <div class="stats-grid">
   <div class="stat-card">
@@ -62,7 +62,7 @@
   </div>
   <div class="stat-card">
     <div class="label">测试用例</div>
-    <div class="value">18</div>
+    <div class="value">32</div>
   </div>
   <div class="stat-card">
     <div class="label">通过率</div>
@@ -88,7 +88,7 @@
     <div class="tier-expired" style="width:25.806451612903224%">expired 32</div><div class="tier-fresh" style="width:37.096774193548384%">fresh 46</div><div class="tier-faded" style="width:16.129032258064516%">faded 20</div><div class="tier-recent" style="width:20.967741935483872%">recent 26</div>
   </div>
   <div class="domain-list">
-    <span class="domain-chip">infra: 49</span><span class="domain-chip">blog: 30</span><span class="domain-chip">openclaw: 16</span><span class="domain-chip">payment: 14</span><span class="domain-chip">chrome-ext: 10</span><span class="domain-chip">comic: 3</span><span class="domain-chip">douyin: 1</span><span class="domain-chip">general: 1</span>
+    <span class="domain-chip">design: 28</span><span class="domain-chip">feishu: 19</span><span class="domain-chip">discord: 15</span><span class="domain-chip">comic: 15</span><span class="domain-chip">payment: 10</span><span class="domain-chip">chrome-ext: 8</span><span class="domain-chip">douyin: 7</span><span class="domain-chip">infra: 6</span><span class="domain-chip">blog: 6</span><span class="domain-chip">openclaw: 5</span><span class="domain-chip">moltbook: 3</span><span class="domain-chip">tts: 1</span><span class="domain-chip">general: 1</span>
   </div>
 </div>
 
@@ -98,17 +98,17 @@
     
       <div class="fuzzy-card">
         <div class="level">high</div>
-        <div class="rate green">4/4</div>
+        <div class="rate green">9/9</div>
       </div>
     
       <div class="fuzzy-card">
         <div class="level">medium</div>
-        <div class="rate green">6/6</div>
+        <div class="rate green">14/14</div>
       </div>
     
       <div class="fuzzy-card">
         <div class="level">low</div>
-        <div class="rate green">5/5</div>
+        <div class="rate green">6/6</div>
       </div>
     
       <div class="fuzzy-card">
@@ -152,7 +152,7 @@
           </td>
           <td>
             <div class="search-results">
-              <div class="item"><span class="tier-icon">🟢</span>给 PeonAI 的 Chrome 插件接入可复用的 test/live 支付链路，不影响线上用户。</div><div class="item"><span class="tier-icon">🟢</span>给 PeonAI 的浏览器插件（如 Repurpose、Side-by-Side Translator）快速打通付款测试</div><div class="item"><span class="tier-icon">🟢</span>- 腾讯云（硅谷）：43.162.104.2，user ubuntu，Swarm AI 部署</div>
+              <div class="item"><span class="tier-icon">🟢</span>给 PeonAI 的 Chrome 插件接入可复用的 test/live 支付链路，不影响线上用户。</div><div class="item"><span class="tier-icon">🟢</span>给 PeonAI 的浏览器插件（如 Repurpose、Side-by-Side Translator）快速打通付款测试</div><div class="item"><span class="tier-icon">🟢</span>- **问题**: Discord bot 在线但无法发送消息，`message` 工具报 "Unknown Chann</div>
             </div>
           </td>
           <td class="pass">✅ PASS</td>
@@ -165,11 +165,11 @@
           <td>infra</td>
           <td>infra</td>
           <td>
-            infra (80%)<br>payment (24%)<br>blog (5%)
+            infra (80%)<br>feishu (24%)<br>comic (5%)
           </td>
           <td>
             <div class="search-results">
-              <div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:main</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div>
+              <div class="item"><span class="tier-icon">🟢</span>1. 本地构建：`cd ~/ww/swarm-ai && npm run build`</div><div class="item"><span class="tier-icon">🔵</span>- 用户要求把 `gpt-5.4` pin 住，切模型试试。</div><div class="item"><span class="tier-icon">🔵</span>- **Session Key**: agent:main:discord:direct:568646458467942</div>
             </div>
           </td>
           <td class="pass">✅ PASS</td>
@@ -182,11 +182,11 @@
           <td>blog</td>
           <td>blog</td>
           <td>
-            blog (86%)<br>openclaw (9%)<br>comic (6%)
+            blog (86%)<br>comic (25%)<br>tts (9%)
           </td>
           <td>
             <div class="search-results">
-              <div class="item"><span class="tier-icon">🟢</span>1. 写文章：~/ww/peon/content/posts/YYYY-MM-DD-slug.md</div><div class="item"><span class="tier-icon">🟢</span>**任务**：根据我们的 OpenClaw 配置和工作流，写一篇分享文章</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:main</div>
+              <div class="item"><span class="tier-icon">🟢</span>1. 写文章：~/ww/peon/content/posts/YYYY-MM-DD-slug.md</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div>
             </div>
           </td>
           <td class="pass">✅ PASS</td>
@@ -199,11 +199,11 @@
           <td>chrome-ext</td>
           <td>chrome-ext</td>
           <td>
-            chrome-ext (59%)<br>payment (26%)<br>openclaw (13%)
+            chrome-ext (40%)<br>payment (26%)<br>comic (19%)
           </td>
           <td>
             <div class="search-results">
-              <div class="item"><span class="tier-icon">🟢</span>Wisp 通过 mailbox 通知：悦哥今晚做了一轮浏览器插件选题调研（海外市场），经两轮筛选 + Far Seer </div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div>
+              <div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div><div class="item"><span class="tier-icon">🟢</span>- **peon-post-lab 博客**：继续推进民国报纸风格主题</div><div class="item"><span class="tier-icon">🟢</span>- 修复 peon.blog 首页移动端布局问题（`newspaper.css` 760px 断点）</div>
             </div>
           </td>
           <td class="pass">✅ PASS</td>
@@ -220,7 +220,7 @@
           </td>
           <td>
             <div class="search-results">
-              <div class="item"><span class="tier-icon">🟢</span>- 腾讯云（硅谷）：43.162.104.2，user ubuntu，Swarm AI 部署</div><div class="item"><span class="tier-icon">🟢</span>- **问题**: Discord bot 在线但无法发送消息，`message` 工具报 "Unknown Chann</div><div class="item"><span class="tier-icon">🟢</span>给 PeonAI 的 Chrome 插件接入可复用的 test/live 支付链路，不影响线上用户。</div>
+              <div class="item"><span class="tier-icon">🟢</span>- **问题**: Discord bot 在线但无法发送消息，`message` 工具报 "Unknown Chann</div><div class="item"><span class="tier-icon">🟢</span>- 路径：`/home/chiny/ww/swarm-ai/`</div><div class="item"><span class="tier-icon">🟢</span>给 PeonAI 的 Chrome 插件接入可复用的 test/live 支付链路，不影响线上用户。</div>
             </div>
           </td>
           <td class="pass">✅ PASS</td>
@@ -233,11 +233,11 @@
           <td>blog</td>
           <td>blog</td>
           <td>
-            blog (100%)
+            blog (80%)<br>chrome-ext (20%)
           </td>
           <td>
             <div class="search-results">
-              <div class="item"><span class="tier-icon">🟢</span>- **peon-post-lab 博客**：继续推进民国报纸风格主题</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:main</div><div class="item"><span class="tier-icon">🟢</span>**1. 第二话封面定稿**</div>
+              <div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div><div class="item"><span class="tier-icon">🟢</span>- 快速否定不合适的方向，不纠结。说"算了"就是真的算了</div>
             </div>
           </td>
           <td class="pass">✅ PASS</td>
@@ -250,11 +250,11 @@
           <td>infra</td>
           <td>infra</td>
           <td>
-            infra (91%)<br>blog (18%)<br>chrome-ext (11%)
+            infra (80%)<br>payment (18%)<br>openclaw (11%)
           </td>
           <td>
             <div class="search-results">
-              <div class="item"><span class="tier-icon">🟢</span>- 修改 OpenClaw / gateway 配置后需要重启</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:main</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div>
+              <div class="item"><span class="tier-icon">🟢</span>1. 本地构建：`cd ~/ww/swarm-ai && npm run build`</div><div class="item"><span class="tier-icon">🔵</span>- 用户要求把 `gpt-5.4` pin 住，切模型试试。</div><div class="item"><span class="tier-icon">🔵</span>- **Session Key**: agent:main:discord:direct:568646458467942</div>
             </div>
           </td>
           <td class="pass">✅ PASS</td>
@@ -267,11 +267,11 @@
           <td>chrome-ext</td>
           <td>chrome-ext</td>
           <td>
-            chrome-ext (92%)<br>payment (21%)<br>openclaw (8%)
+            chrome-ext (80%)<br>payment (21%)<br>comic (12%)
           </td>
           <td>
             <div class="search-results">
-              <div class="item"><span class="tier-icon">🟢</span>Wisp 通过 mailbox 通知：悦哥今晚做了一轮浏览器插件选题调研（海外市场），经两轮筛选 + Far Seer </div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div>
+              <div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div><div class="item"><span class="tier-icon">🟢</span>- **peon-post-lab 博客**：继续推进民国报纸风格主题</div><div class="item"><span class="tier-icon">🟢</span>- 修复 peon.blog 首页移动端布局问题（`newspaper.css` 760px 断点）</div>
             </div>
           </td>
           <td class="pass">✅ PASS</td>
@@ -284,11 +284,11 @@
           <td>comic</td>
           <td>comic</td>
           <td>
-            comic (97%)<br>blog (6%)
+            comic (97%)
           </td>
           <td>
             <div class="search-results">
-              <div class="item"><span class="tier-icon">🟢</span>1. **第一话脚本重写** — 从"流程图式"分镜改成有故事性的版本</div><div class="item"><span class="tier-icon">🟡</span>1. **第一话脚本重写** — 从"流程图式"分镜改成有故事性的版本</div><div class="item"><span class="tier-icon">🟡</span>- **Session Key**: agent:main:discord:direct:568646458467942</div>
+              <div class="item"><span class="tier-icon">🟢</span>1. **第一话脚本重写** — 从"流程图式"分镜改成有故事性的版本</div><div class="item"><span class="tier-icon">🟢</span>**任务**：根据我们的 OpenClaw 配置和工作流，写一篇分享文章</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div>
             </div>
           </td>
           <td class="pass">✅ PASS</td>
@@ -301,11 +301,11 @@
           <td>openclaw</td>
           <td>openclaw</td>
           <td>
-            openclaw (98%)<br>blog (34%)<br>infra (18%)
+            openclaw (98%)<br>feishu (34%)<br>design (18%)
           </td>
           <td>
             <div class="search-results">
-              <div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div><div class="item"><span class="tier-icon">🔵</span>- **Session Key**: agent:main:discord:direct:568646458467942</div>
+              <div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:main</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div><div class="item"><span class="tier-icon">🟢</span>- 修改 OpenClaw / gateway 配置后需要重启</div>
             </div>
           </td>
           <td class="pass">✅ PASS</td>
@@ -318,11 +318,11 @@
           <td>blog</td>
           <td>blog</td>
           <td>
-            blog (80%)<br>infra (12%)
+            blog (80%)<br>feishu (12%)
           </td>
           <td>
             <div class="search-results">
-              <div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:main</div><div class="item"><span class="tier-icon">🟢</span>**1. 第二话封面定稿**</div><div class="item"><span class="tier-icon">🟢</span>悦哥确认了之前提出的 5→3 方案，直接执行：</div>
+              <div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div><div class="item"><span class="tier-icon">🟢</span>- 快速否定不合适的方向，不纠结。说"算了"就是真的算了</div>
             </div>
           </td>
           <td class="pass">✅ PASS</td>
@@ -339,7 +339,7 @@
           </td>
           <td>
             <div class="search-results">
-              <div class="item"><span class="tier-icon">🟢</span>- 腾讯云（硅谷）：43.162.104.2，user ubuntu，Swarm AI 部署</div><div class="item"><span class="tier-icon">🟢</span>- **问题**: Discord bot 在线但无法发送消息，`message` 工具报 "Unknown Chann</div><div class="item"><span class="tier-icon">🟢</span>给 PeonAI 的 Chrome 插件接入可复用的 test/live 支付链路，不影响线上用户。</div>
+              <div class="item"><span class="tier-icon">🟢</span>- **问题**: Discord bot 在线但无法发送消息，`message` 工具报 "Unknown Chann</div><div class="item"><span class="tier-icon">🟢</span>- 路径：`/home/chiny/ww/swarm-ai/`</div><div class="item"><span class="tier-icon">🟢</span>给 PeonAI 的 Chrome 插件接入可复用的 test/live 支付链路，不影响线上用户。</div>
             </div>
           </td>
           <td class="pass">✅ PASS</td>
@@ -356,7 +356,7 @@
           </td>
           <td>
             <div class="search-results">
-              <div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:main</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div>
+              <div class="item"><span class="tier-icon">🟢</span>1. 本地构建：`cd ~/ww/swarm-ai && npm run build`</div><div class="item"><span class="tier-icon">🔵</span>- 用户要求把 `gpt-5.4` pin 住，切模型试试。</div><div class="item"><span class="tier-icon">🔵</span>- **Session Key**: agent:main:discord:direct:568646458467942</div>
             </div>
           </td>
           <td class="pass">✅ PASS</td>
@@ -369,11 +369,11 @@
           <td>blog</td>
           <td>blog</td>
           <td>
-            blog (127%)<br>openclaw (5%)
+            blog (80%)<br>chrome-ext (47%)<br>feishu (12%)
           </td>
           <td>
             <div class="search-results">
-              <div class="item"><span class="tier-icon">🟢</span>- 修复 peon.blog 首页移动端布局问题（`newspaper.css` 760px 断点）</div><div class="item"><span class="tier-icon">🟢</span>- 新 session 启动，读取 SOUL.md、USER.md、MEMORY.md</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:main</div>
+              <div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div><div class="item"><span class="tier-icon">🟢</span>- 快速否定不合适的方向，不纠结。说"算了"就是真的算了</div>
             </div>
           </td>
           <td class="pass">✅ PASS</td>
@@ -386,11 +386,11 @@
           <td>infra</td>
           <td>infra</td>
           <td>
-            infra (92%)<br>openclaw (21%)
+            infra (80%)<br>feishu (21%)
           </td>
           <td>
             <div class="search-results">
-              <div class="item"><span class="tier-icon">🟢</span>- 账号：Peon，抖音号 59267000653</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:main</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div>
+              <div class="item"><span class="tier-icon">🟢</span>1. 本地构建：`cd ~/ww/swarm-ai && npm run build`</div><div class="item"><span class="tier-icon">🔵</span>- 用户要求把 `gpt-5.4` pin 住，切模型试试。</div><div class="item"><span class="tier-icon">🔵</span>- **Session Key**: agent:main:discord:direct:568646458467942</div>
             </div>
           </td>
           <td class="pass">✅ PASS</td>
@@ -401,13 +401,13 @@
           <td>废弃的临时目录（应该被过滤）</td>
           <td><span class="tag tag-negative">negative</span></td>
           <td>—</td>
-          <td>—</td>
+          <td>infra</td>
           <td>
-            无匹配
+            infra (40%)
           </td>
           <td>
             <div class="search-results">
-              无匹配
+              <div class="item"><span class="tier-icon">🟢</span>1. 本地构建：`cd ~/ww/swarm-ai && npm run build`</div><div class="item"><span class="tier-icon">🔵</span>- 用户要求把 `gpt-5.4` pin 住，切模型试试。</div><div class="item"><span class="tier-icon">🔵</span>- **Session Key**: agent:main:discord:direct:568646458467942</div>
             </div>
           </td>
           <td class="pass">✅ PASS</td>
@@ -418,9 +418,9 @@
           <td>极度模糊的时间查询</td>
           <td><span class="tag tag-extreme">extreme</span></td>
           <td>—</td>
-          <td>chrome-ext</td>
+          <td>comic</td>
           <td>
-            chrome-ext (12%)<br>blog (8%)<br>payment (4%)
+            comic (12%)<br>blog (8%)<br>feishu (5%)
           </td>
           <td>
             <div class="search-results">
@@ -435,13 +435,251 @@
           <td>模糊找 bug 记录</td>
           <td><span class="tag tag-extreme">extreme</span></td>
           <td>—</td>
-          <td>blog</td>
+          <td>feishu</td>
           <td>
-            blog (6%)<br>chrome-ext (4%)
+            feishu (6%)<br>blog (5%)<br>comic (4%)
           </td>
           <td>
             <div class="search-results">
               <div class="item"><span class="tier-icon">🟢</span>悦哥确认了之前提出的 5→3 方案，直接执行：</div><div class="item"><span class="tier-icon">🟢</span>1. **改了就验** — 任何影响输出的修改，必须在下一步之前验证</div><div class="item"><span class="tier-icon">🟢</span>Wisp 通过 mailbox 通知：悦哥今晚做了一轮浏览器插件选题调研（海外市场），经两轮筛选 + Far Seer </div>
+            </div>
+          </td>
+          <td class="pass">✅ PASS</td>
+        </tr>
+      
+        <tr>
+          <td><code>peonai</code></td>
+          <td>只记得 peonai 这个品牌</td>
+          <td><span class="tag tag-high">high</span></td>
+          <td>payment</td>
+          <td>payment</td>
+          <td>
+            payment (55%)
+          </td>
+          <td>
+            <div class="search-results">
+              <div class="item"><span class="tier-icon">🟢</span>给 PeonAI 的 Chrome 插件接入可复用的 test/live 支付链路，不影响线上用户。</div><div class="item"><span class="tier-icon">🟢</span>给 PeonAI 的浏览器插件（如 Repurpose、Side-by-Side Translator）快速打通付款测试</div><div class="item"><span class="tier-icon">🟢</span>- **问题**: Discord bot 在线但无法发送消息，`message` 工具报 "Unknown Chann</div>
+            </div>
+          </td>
+          <td class="pass">✅ PASS</td>
+        </tr>
+      
+        <tr>
+          <td><code>peonai.net 站点</code></td>
+          <td>记得有个 peonai.net 网站</td>
+          <td><span class="tag tag-medium">medium</span></td>
+          <td>infra</td>
+          <td>infra</td>
+          <td>
+            infra (80%)<br>payment (40%)<br>chrome-ext (10%)
+          </td>
+          <td>
+            <div class="search-results">
+              <div class="item"><span class="tier-icon">🟢</span>1. 本地构建：`cd ~/ww/swarm-ai && npm run build`</div><div class="item"><span class="tier-icon">🔵</span>- 用户要求把 `gpt-5.4` pin 住，切模型试试。</div><div class="item"><span class="tier-icon">🔵</span>- **Session Key**: agent:main:discord:direct:568646458467942</div>
+            </div>
+          </td>
+          <td class="pass">✅ PASS</td>
+        </tr>
+      
+        <tr>
+          <td><code>peonai 落地页</code></td>
+          <td>做过 peonai 的落地页</td>
+          <td><span class="tag tag-medium">medium</span></td>
+          <td>infra</td>
+          <td>infra</td>
+          <td>
+            infra (51%)<br>payment (46%)<br>design (40%)
+          </td>
+          <td>
+            <div class="search-results">
+              <div class="item"><span class="tier-icon">🟢</span>1. 本地构建：`cd ~/ww/swarm-ai && npm run build`</div><div class="item"><span class="tier-icon">🟢</span>给 PeonAI 的 Chrome 插件接入可复用的 test/live 支付链路，不影响线上用户。</div><div class="item"><span class="tier-icon">🟢</span>给 PeonAI 的浏览器插件（如 Repurpose、Side-by-Side Translator）快速打通付款测试</div>
+            </div>
+          </td>
+          <td class="pass">✅ PASS</td>
+        </tr>
+      
+        <tr>
+          <td><code>repurpose</code></td>
+          <td>有个叫 Repurpose 的插件项目</td>
+          <td><span class="tag tag-medium">medium</span></td>
+          <td>chrome-ext</td>
+          <td>chrome-ext</td>
+          <td>
+            chrome-ext (40%)<br>payment (12%)
+          </td>
+          <td>
+            <div class="search-results">
+              <div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div><div class="item"><span class="tier-icon">🟢</span>- **peon-post-lab 博客**：继续推进民国报纸风格主题</div><div class="item"><span class="tier-icon">🟢</span>- 修复 peon.blog 首页移动端布局问题（`newspaper.css` 760px 断点）</div>
+            </div>
+          </td>
+          <td class="pass">✅ PASS</td>
+        </tr>
+      
+        <tr>
+          <td><code>repurpose 插件废弃了吗</code></td>
+          <td>记得 Repurpose 好像废弃了</td>
+          <td><span class="tag tag-medium">medium</span></td>
+          <td>chrome-ext</td>
+          <td>chrome-ext</td>
+          <td>
+            chrome-ext (80%)<br>payment (14%)<br>comic (13%)
+          </td>
+          <td>
+            <div class="search-results">
+              <div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div><div class="item"><span class="tier-icon">🟢</span>- **peon-post-lab 博客**：继续推进民国报纸风格主题</div><div class="item"><span class="tier-icon">🟢</span>- 修复 peon.blog 首页移动端布局问题（`newspaper.css` 760px 断点）</div>
+            </div>
+          </td>
+          <td class="pass">✅ PASS</td>
+        </tr>
+      
+        <tr>
+          <td><code>废弃的产品</code></td>
+          <td>哪些产品废弃了</td>
+          <td><span class="tag tag-high">high</span></td>
+          <td>chrome-ext</td>
+          <td>chrome-ext</td>
+          <td>
+            chrome-ext (80%)<br>payment (10%)<br>blog (9%)
+          </td>
+          <td>
+            <div class="search-results">
+              <div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div><div class="item"><span class="tier-icon">🟢</span>- **peon-post-lab 博客**：继续推进民国报纸风格主题</div><div class="item"><span class="tier-icon">🟢</span>- 修复 peon.blog 首页移动端布局问题（`newspaper.css` 760px 断点）</div>
+            </div>
+          </td>
+          <td class="pass">✅ PASS</td>
+        </tr>
+      
+        <tr>
+          <td><code>web 产品上架</code></td>
+          <td>有产品上架过 Web Store</td>
+          <td><span class="tag tag-medium">medium</span></td>
+          <td>chrome-ext</td>
+          <td>chrome-ext</td>
+          <td>
+            chrome-ext (80%)<br>payment (21%)
+          </td>
+          <td>
+            <div class="search-results">
+              <div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div><div class="item"><span class="tier-icon">🟢</span>- **peon-post-lab 博客**：继续推进民国报纸风格主题</div><div class="item"><span class="tier-icon">🟢</span>- 修复 peon.blog 首页移动端布局问题（`newspaper.css` 760px 断点）</div>
+            </div>
+          </td>
+          <td class="pass">✅ PASS</td>
+        </tr>
+      
+        <tr>
+          <td><code>Side-by-Side Translator 商店</code></td>
+          <td>翻译插件在商店的状态</td>
+          <td><span class="tag tag-low">low</span></td>
+          <td>chrome-ext</td>
+          <td>chrome-ext</td>
+          <td>
+            chrome-ext (80%)<br>payment (33%)
+          </td>
+          <td>
+            <div class="search-results">
+              <div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div><div class="item"><span class="tier-icon">🟢</span>- **peon-post-lab 博客**：继续推进民国报纸风格主题</div><div class="item"><span class="tier-icon">🟢</span>- 修复 peon.blog 首页移动端布局问题（`newspaper.css` 760px 断点）</div>
+            </div>
+          </td>
+          <td class="pass">✅ PASS</td>
+        </tr>
+      
+        <tr>
+          <td><code>飞书消息</code></td>
+          <td>飞书相关的事</td>
+          <td><span class="tag tag-high">high</span></td>
+          <td>feishu</td>
+          <td>feishu</td>
+          <td>
+            feishu (80%)<br>payment (20%)
+          </td>
+          <td>
+            <div class="search-results">
+              <div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:main</div><div class="item"><span class="tier-icon">🟢</span>悦哥确认了之前提出的 5→3 方案，直接执行：</div><div class="item"><span class="tier-icon">🟢</span>- 新 session 启动，读取 SOUL.md、USER.md、MEMORY.md</div>
+            </div>
+          </td>
+          <td class="pass">✅ PASS</td>
+        </tr>
+      
+        <tr>
+          <td><code>swarm 部署</code></td>
+          <td>记得有个 swarm 项目</td>
+          <td><span class="tag tag-medium">medium</span></td>
+          <td>infra</td>
+          <td>infra</td>
+          <td>
+            infra (80%)<br>feishu (49%)
+          </td>
+          <td>
+            <div class="search-results">
+              <div class="item"><span class="tier-icon">🟢</span>1. 本地构建：`cd ~/ww/swarm-ai && npm run build`</div><div class="item"><span class="tier-icon">🔵</span>- 用户要求把 `gpt-5.4` pin 住，切模型试试。</div><div class="item"><span class="tier-icon">🔵</span>- **Session Key**: agent:main:discord:direct:568646458467942</div>
+            </div>
+          </td>
+          <td class="pass">✅ PASS</td>
+        </tr>
+      
+        <tr>
+          <td><code>定价策略</code></td>
+          <td>讨论过定价</td>
+          <td><span class="tag tag-high">high</span></td>
+          <td>payment</td>
+          <td>payment</td>
+          <td>
+            payment (40%)<br>douyin (10%)<br>blog (5%)
+          </td>
+          <td>
+            <div class="search-results">
+              <div class="item"><span class="tier-icon">🟢</span>- **问题**: Discord bot 在线但无法发送消息，`message` 工具报 "Unknown Chann</div><div class="item"><span class="tier-icon">🟢</span>- 路径：`/home/chiny/ww/swarm-ai/`</div><div class="item"><span class="tier-icon">🟢</span>给 PeonAI 的 Chrome 插件接入可复用的 test/live 支付链路，不影响线上用户。</div>
+            </div>
+          </td>
+          <td class="pass">✅ PASS</td>
+        </tr>
+      
+        <tr>
+          <td><code>WSL 迁移</code></td>
+          <td>从 Windows 迁到 WSL</td>
+          <td><span class="tag tag-medium">medium</span></td>
+          <td>infra</td>
+          <td>infra</td>
+          <td>
+            infra (80%)<br>chrome-ext (10%)
+          </td>
+          <td>
+            <div class="search-results">
+              <div class="item"><span class="tier-icon">🟢</span>1. 本地构建：`cd ~/ww/swarm-ai && npm run build`</div><div class="item"><span class="tier-icon">🔵</span>- 用户要求把 `gpt-5.4` pin 住，切模型试试。</div><div class="item"><span class="tier-icon">🔵</span>- **Session Key**: agent:main:discord:direct:568646458467942</div>
+            </div>
+          </td>
+          <td class="pass">✅ PASS</td>
+        </tr>
+      
+        <tr>
+          <td><code>memory 共享 agent</code></td>
+          <td>多 agent 共享记忆的问题</td>
+          <td><span class="tag tag-medium">medium</span></td>
+          <td>openclaw</td>
+          <td>openclaw</td>
+          <td>
+            openclaw (96%)<br>payment (21%)<br>design (16%)
+          </td>
+          <td>
+            <div class="search-results">
+              <div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:main</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div><div class="item"><span class="tier-icon">🟢</span>- 修改 OpenClaw / gateway 配置后需要重启</div>
+            </div>
+          </td>
+          <td class="pass">✅ PASS</td>
+        </tr>
+      
+        <tr>
+          <td><code>抖音发布</code></td>
+          <td>发过抖音</td>
+          <td><span class="tag tag-high">high</span></td>
+          <td>douyin</td>
+          <td>douyin</td>
+          <td>
+            douyin (40%)<br>moltbook (40%)<br>feishu (31%)
+          </td>
+          <td>
+            <div class="search-results">
+              <div class="item"><span class="tier-icon">🟢</span>**1. 第二话封面定稿**</div><div class="item"><span class="tier-icon">🟢</span>1. 准备 data.json（date/weekday/headlines/cards）</div><div class="item"><span class="tier-icon">🟢</span>1. 设置代理：export http_proxy=http://127.0.0.1:7897 https_proxy=</div>
             </div>
           </td>
           <td class="pass">✅ PASS</td>
@@ -456,9 +694,9 @@
   <table>
     <thead><tr><th>维度</th><th>观察</th></tr></thead>
     <tbody>
-      <tr><td>高模糊度查询</td><td>4/4 通过。单个中文词（如"支付"）依赖 bigram 分词，对短查询召回率有限。</td></tr>
-      <tr><td>中模糊度查询</td><td>6/6 通过。关键词组合（如"Chrome 翻译插件"）命中率显著提升。</td></tr>
-      <tr><td>低模糊度查询</td><td>5/5 通过。具体术语（如"fonts.bunny.net"）精确匹配效果好。</td></tr>
+      <tr><td>高模糊度查询</td><td>9/9 通过。单个中文词（如"支付"）依赖 bigram 分词，对短查询召回率有限。</td></tr>
+      <tr><td>中模糊度查询</td><td>14/14 通过。关键词组合（如"Chrome 翻译插件"）命中率显著提升。</td></tr>
+      <tr><td>低模糊度查询</td><td>6/6 通过。具体术语（如"fonts.bunny.net"）精确匹配效果好。</td></tr>
       <tr><td>过期过滤</td><td>✅ 无泄漏，过期记忆被正确过滤。</td></tr>
       <tr><td>衰减梯度</td><td>fresh 46 / recent 26 / faded 20 / ghost 0 / expired 32。梯度分布合理。</td></tr>
       <tr><td>改进方向</td><td>1) 高模糊度查询需要语义 embedding 支持<br>2) 中文分词可升级为 jieba 或类似方案<br>3) 可加入 domain 别名映射提高召回</td></tr>
@@ -467,7 +705,7 @@
 </div>
 
 <footer>
-  Memory Decay v0.1.0 · 测试时间 2026/3/18 18:40:43 · 124 memories · 18 test cases
+  Memory Decay v0.1.0 · 测试时间 2026/3/18 18:51:33 · 124 memories · 32 test cases
 </footer>
 
 </body>

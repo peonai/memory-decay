@@ -35,6 +35,24 @@ const testCases = [
   // 跨域模糊
   { query: '上个月做了什么', desc: '极度模糊的时间查询', expectDomain: null, fuzzyLevel: 'extreme' },
   { query: '出过什么 bug', desc: '模糊找 bug 记录', expectDomain: null, fuzzyLevel: 'extreme' },
+
+  // ── PeonAI 产品线 ──
+  { query: 'peonai', desc: '只记得 peonai 这个品牌', expectDomain: 'payment', fuzzyLevel: 'high' },
+  { query: 'peonai.net 站点', desc: '记得有个 peonai.net 网站', expectDomain: 'infra', fuzzyLevel: 'medium' },
+  { query: 'peonai 落地页', desc: '做过 peonai 的落地页', expectDomain: 'infra', fuzzyLevel: 'medium' },
+  { query: 'repurpose', desc: '有个叫 Repurpose 的插件项目', expectDomain: 'chrome-ext', fuzzyLevel: 'medium' },
+  { query: 'repurpose 插件废弃了吗', desc: '记得 Repurpose 好像废弃了', expectDomain: 'chrome-ext', fuzzyLevel: 'medium' },
+  { query: '废弃的产品', desc: '哪些产品废弃了', expectDomain: 'chrome-ext', fuzzyLevel: 'high' },
+  { query: 'web 产品上架', desc: '有产品上架过 Web Store', expectDomain: 'chrome-ext', fuzzyLevel: 'medium' },
+  { query: 'Side-by-Side Translator 商店', desc: '翻译插件在商店的状态', expectDomain: 'chrome-ext', fuzzyLevel: 'low' },
+
+  // ── 更多真实回忆场景 ──
+  { query: '飞书消息', desc: '飞书相关的事', expectDomain: 'feishu', fuzzyLevel: 'high' },
+  { query: 'swarm 部署', desc: '记得有个 swarm 项目', expectDomain: 'infra', fuzzyLevel: 'medium' },
+  { query: '定价策略', desc: '讨论过定价', expectDomain: 'payment', fuzzyLevel: 'high' },
+  { query: 'WSL 迁移', desc: '从 Windows 迁到 WSL', expectDomain: 'infra', fuzzyLevel: 'medium' },
+  { query: 'memory 共享 agent', desc: '多 agent 共享记忆的问题', expectDomain: 'openclaw', fuzzyLevel: 'medium' },
+  { query: '抖音发布', desc: '发过抖音', expectDomain: 'douyin', fuzzyLevel: 'high' },
 ];
 
 const results = [];
