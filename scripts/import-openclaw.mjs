@@ -4,6 +4,7 @@ import { readdirSync, readFileSync } from 'fs';
 import { join, basename } from 'path';
 import { v4 as uuid } from 'uuid';
 import { ensureDirs, writeMemory } from '../lib/store.mjs';
+import { summarize } from '../lib/summarize.mjs';
 
 const WORKSPACE = process.env.HOME + '/.openclaw/workspace/memory';
 const root = ensureDirs();
@@ -174,7 +175,16 @@ for (const dir of ['semantic', 'procedural']) {
     const domain = guessDomain(text, file);
     const type = guessType(dir, file, text);
     const ttl = guessTTL(type, dir);
-    const summary = firstLine(text) || basename(file, '.md');
+    
+    // 用 LLM 生成高质量 summary
+    let summary;
+    try {
+      console.log(`📝 Summarizing ${file}...`);
+      summary = await summarize(text);
+    } catch (err) {
+      console.warn(`⚠️  LLM failed for ${file}, fallback to firstLine:`, err.message);
+      summary = firstLine(text) || basename(file, '.md');
+    }
 
     // 去重：相同 summary 只保留第一条
     const dedupeKey = summary.slice(0, 80);
