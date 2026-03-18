@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory Decay — 模糊检索测试报告</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'Segoe UI', sans-serif; background: #0a0a0a; color: #e0e0e0; padding: 2rem; line-height: 1.6; }
+  h1 { color: #f0f0f0; margin-bottom: 0.5rem; font-size: 1.8rem; }
+  .subtitle { color: #888; margin-bottom: 2rem; }
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+  .stat-card { background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 1.2rem; }
+  .stat-card .label { color: #888; font-size: 0.85rem; margin-bottom: 0.3rem; }
+  .stat-card .value { font-size: 1.8rem; font-weight: 700; }
+  .stat-card .value.green { color: #4ade80; }
+  .stat-card .value.yellow { color: #facc15; }
+  .stat-card .value.red { color: #f87171; }
+  .stat-card .value.blue { color: #60a5fa; }
+  .section { margin-bottom: 2rem; }
+  .section h2 { color: #ccc; font-size: 1.2rem; margin-bottom: 1rem; border-bottom: 1px solid #333; padding-bottom: 0.5rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  th { background: #1a1a1a; color: #aaa; text-align: left; padding: 0.7rem; border-bottom: 2px solid #333; }
+  td { padding: 0.7rem; border-bottom: 1px solid #222; vertical-align: top; }
+  tr:hover { background: #151515; }
+  .pass { color: #4ade80; font-weight: 600; }
+  .fail { color: #f87171; font-weight: 600; }
+  .tag { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+  .tag-high { background: #7c3aed33; color: #a78bfa; }
+  .tag-medium { background: #2563eb33; color: #60a5fa; }
+  .tag-low { background: #16a34a33; color: #4ade80; }
+  .tag-negative { background: #dc262633; color: #f87171; }
+  .tag-extreme { background: #d9770633; color: #fb923c; }
+  .tier-bar { display: flex; height: 24px; border-radius: 4px; overflow: hidden; margin-top: 0.5rem; }
+  .tier-bar div { display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; }
+  .tier-fresh { background: #4ade80; color: #000; }
+  .tier-recent { background: #60a5fa; color: #000; }
+  .tier-faded { background: #facc15; color: #000; }
+  .tier-ghost { background: #888; color: #000; }
+  .tier-expired { background: #f87171; color: #000; }
+  .domain-list { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+  .domain-chip { background: #1a1a1a; border: 1px solid #333; padding: 0.3rem 0.7rem; border-radius: 4px; font-size: 0.8rem; }
+  .search-results { font-size: 0.8rem; color: #888; max-height: 120px; overflow-y: auto; margin-top: 0.3rem; }
+  .search-results .item { margin-bottom: 0.3rem; }
+  .search-results .tier-icon { margin-right: 0.3rem; }
+  .fuzzy-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.8rem; margin-bottom: 1.5rem; }
+  .fuzzy-card { background: #1a1a1a; border: 1px solid #333; border-radius: 6px; padding: 0.8rem; text-align: center; }
+  .fuzzy-card .level { font-size: 0.8rem; color: #888; margin-bottom: 0.3rem; }
+  .fuzzy-card .rate { font-size: 1.4rem; font-weight: 700; }
+  footer { margin-top: 3rem; color: #555; font-size: 0.8rem; text-align: center; }
+</style>
+</head>
+<body>
+
+<h1>🧠 Memory Decay — 模糊检索测试报告</h1>
+<p class="subtitle">模拟人类模糊记忆的检索准确度测试 · 2026-03-18 10:40</p>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="label">总记忆数</div>
+    <div class="value blue">124</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">测试用例</div>
+    <div class="value">18</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">通过率</div>
+    <div class="value green">100%</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">域命中率（Top-1）</div>
+    <div class="value green">100%</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">域命中率（Any）</div>
+    <div class="value green">100%</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">过期泄漏</div>
+    <div class="value green">0</div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>记忆分布</h2>
+  <div class="tier-bar">
+    <div class="tier-expired" style="width:25.806451612903224%">expired 32</div><div class="tier-fresh" style="width:37.096774193548384%">fresh 46</div><div class="tier-faded" style="width:16.129032258064516%">faded 20</div><div class="tier-recent" style="width:20.967741935483872%">recent 26</div>
+  </div>
+  <div class="domain-list">
+    <span class="domain-chip">infra: 49</span><span class="domain-chip">blog: 30</span><span class="domain-chip">openclaw: 16</span><span class="domain-chip">payment: 14</span><span class="domain-chip">chrome-ext: 10</span><span class="domain-chip">comic: 3</span><span class="domain-chip">douyin: 1</span><span class="domain-chip">general: 1</span>
+  </div>
+</div>
+
+<div class="section">
+  <h2>按模糊程度</h2>
+  <div class="fuzzy-grid">
+    
+      <div class="fuzzy-card">
+        <div class="level">high</div>
+        <div class="rate green">4/4</div>
+      </div>
+    
+      <div class="fuzzy-card">
+        <div class="level">medium</div>
+        <div class="rate green">6/6</div>
+      </div>
+    
+      <div class="fuzzy-card">
+        <div class="level">low</div>
+        <div class="rate green">5/5</div>
+      </div>
+    
+      <div class="fuzzy-card">
+        <div class="level">negative</div>
+        <div class="rate green">1/1</div>
+      </div>
+    
+      <div class="fuzzy-card">
+        <div class="level">extreme</div>
+        <div class="rate green">2/2</div>
+      </div>
+    
+  </div>
+</div>
+
+<div class="section">
+  <h2>详细结果</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>查询</th>
+        <th>描述</th>
+        <th>模糊度</th>
+        <th>期望域</th>
+        <th>Top-1 域</th>
+        <th>Scan 结果</th>
+        <th>Search Top-3</th>
+        <th>结果</th>
+      </tr>
+    </thead>
+    <tbody>
+      
+        <tr>
+          <td><code>支付</code></td>
+          <td>只记得跟支付有关</td>
+          <td><span class="tag tag-high">high</span></td>
+          <td>payment</td>
+          <td>payment</td>
+          <td>
+            payment (66%)
+          </td>
+          <td>
+            <div class="search-results">
+              <div class="item"><span class="tier-icon">🟢</span>给 PeonAI 的 Chrome 插件接入可复用的 test/live 支付链路，不影响线上用户。</div><div class="item"><span class="tier-icon">🟢</span>给 PeonAI 的浏览器插件（如 Repurpose、Side-by-Side Translator）快速打通付款测试</div><div class="item"><span class="tier-icon">🟢</span>- 腾讯云（硅谷）：43.162.104.2，user ubuntu，Swarm AI 部署</div>
+            </div>
+          </td>
+          <td class="pass">✅ PASS</td>
+        </tr>
+      
+        <tr>
+          <td><code>部署服务器</code></td>
+          <td>大概记得部署过什么</td>
+          <td><span class="tag tag-high">high</span></td>
+          <td>infra</td>
+          <td>infra</td>
+          <td>
+            infra (80%)<br>payment (24%)<br>blog (5%)
+          </td>
+          <td>
+            <div class="search-results">
+              <div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:main</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div>
+            </div>
+          </td>
+          <td class="pass">✅ PASS</td>
+        </tr>
+      
+        <tr>
+          <td><code>写过文章</code></td>
+          <td>好像写过博客</td>
+          <td><span class="tag tag-high">high</span></td>
+          <td>blog</td>
+          <td>blog</td>
+          <td>
+            blog (86%)<br>openclaw (9%)<br>comic (6%)
+          </td>
+          <td>
+            <div class="search-results">
+              <div class="item"><span class="tier-icon">🟢</span>1. 写文章：~/ww/peon/content/posts/YYYY-MM-DD-slug.md</div><div class="item"><span class="tier-icon">🟢</span>**任务**：根据我们的 OpenClaw 配置和工作流，写一篇分享文章</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:main</div>
+            </div>
+          </td>
+          <td class="pass">✅ PASS</td>
+        </tr>
+      
+        <tr>
+          <td><code>插件</code></td>
+          <td>做过浏览器插件</td>
+          <td><span class="tag tag-high">high</span></td>
+          <td>chrome-ext</td>
+          <td>chrome-ext</td>
+          <td>
+            chrome-ext (59%)<br>payment (26%)<br>openclaw (13%)
+          </td>
+          <td>
+            <div class="search-results">
+              <div class="item"><span class="tier-icon">🟢</span>Wisp 通过 mailbox 通知：悦哥今晚做了一轮浏览器插件选题调研（海外市场），经两轮筛选 + Far Seer </div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div>
+            </div>
+          </td>
+          <td class="pass">✅ PASS</td>
+        </tr>
+      
+        <tr>
+          <td><code>Creem API</code></td>
+          <td>记得用了 Creem 的 API</td>
+          <td><span class="tag tag-medium">medium</span></td>
+          <td>payment</td>
+          <td>payment</td>
+          <td>
+            payment (40%)
+          </td>
+          <td>
+            <div class="search-results">
+              <div class="item"><span class="tier-icon">🟢</span>- 腾讯云（硅谷）：43.162.104.2，user ubuntu，Swarm AI 部署</div><div class="item"><span class="tier-icon">🟢</span>- **问题**: Discord bot 在线但无法发送消息，`message` 工具报 "Unknown Chann</div><div class="item"><span class="tier-icon">🟢</span>给 PeonAI 的 Chrome 插件接入可复用的 test/live 支付链路，不影响线上用户。</div>
+            </div>
+          </td>
+          <td class="pass">✅ PASS</td>
+        </tr>
+      
+        <tr>
+          <td><code>Hugo 博客双语</code></td>
+          <td>博客做了双语</td>
+          <td><span class="tag tag-medium">medium</span></td>
+          <td>blog</td>
+          <td>blog</td>
+          <td>
+            blog (100%)
+          </td>
+          <td>
+            <div class="search-results">
+              <div class="item"><span class="tier-icon">🟢</span>- **peon-post-lab 博客**：继续推进民国报纸风格主题</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:main</div><div class="item"><span class="tier-icon">🟢</span>**1. 第二话封面定稿**</div>
+            </div>
+          </td>
+          <td class="pass">✅ PASS</td>
+        </tr>
+      
+        <tr>
+          <td><code>gateway 路由</code></td>
+          <td>LLM Gateway 路由相关</td>
+          <td><span class="tag tag-medium">medium</span></td>
+          <td>infra</td>
+          <td>infra</td>
+          <td>
+            infra (91%)<br>blog (18%)<br>chrome-ext (11%)
+          </td>
+          <td>
+            <div class="search-results">
+              <div class="item"><span class="tier-icon">🟢</span>- 修改 OpenClaw / gateway 配置后需要重启</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:main</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div>
+            </div>
+          </td>
+          <td class="pass">✅ PASS</td>
+        </tr>
+      
+        <tr>
+          <td><code>Chrome 翻译插件</code></td>
+          <td>Side-by-Side Translator</td>
+          <td><span class="tag tag-medium">medium</span></td>
+          <td>chrome-ext</td>
+          <td>chrome-ext</td>
+          <td>
+            chrome-ext (92%)<br>payment (21%)<br>openclaw (8%)
+          </td>
+          <td>
+            <div class="search-results">
+              <div class="item"><span class="tier-icon">🟢</span>Wisp 通过 mailbox 通知：悦哥今晚做了一轮浏览器插件选题调研（海外市场），经两轮筛选 + Far Seer </div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div>
+            </div>
+          </td>
+          <td class="pass">✅ PASS</td>
+        </tr>
+      
+        <tr>
+          <td><code>漫画分镜</code></td>
+          <td>做过漫画</td>
+          <td><span class="tag tag-medium">medium</span></td>
+          <td>comic</td>
+          <td>comic</td>
+          <td>
+            comic (97%)<br>blog (6%)
+          </td>
+          <td>
+            <div class="search-results">
+              <div class="item"><span class="tier-icon">🟢</span>1. **第一话脚本重写** — 从"流程图式"分镜改成有故事性的版本</div><div class="item"><span class="tier-icon">🟡</span>1. **第一话脚本重写** — 从"流程图式"分镜改成有故事性的版本</div><div class="item"><span class="tier-icon">🟡</span>- **Session Key**: agent:main:discord:direct:568646458467942</div>
+            </div>
+          </td>
+          <td class="pass">✅ PASS</td>
+        </tr>
+      
+        <tr>
+          <td><code>agent 协作</code></td>
+          <td>多 agent 协作</td>
+          <td><span class="tag tag-medium">medium</span></td>
+          <td>openclaw</td>
+          <td>openclaw</td>
+          <td>
+            openclaw (98%)<br>blog (34%)<br>infra (18%)
+          </td>
+          <td>
+            <div class="search-results">
+              <div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div><div class="item"><span class="tier-icon">🔵</span>- **Session Key**: agent:main:discord:direct:568646458467942</div>
+            </div>
+          </td>
+          <td class="pass">✅ PASS</td>
+        </tr>
+      
+        <tr>
+          <td><code>fonts.bunny.net 字体CDN</code></td>
+          <td>换过字体 CDN</td>
+          <td><span class="tag tag-low">low</span></td>
+          <td>blog</td>
+          <td>blog</td>
+          <td>
+            blog (80%)<br>infra (12%)
+          </td>
+          <td>
+            <div class="search-results">
+              <div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:main</div><div class="item"><span class="tier-icon">🟢</span>**1. 第二话封面定稿**</div><div class="item"><span class="tier-icon">🟢</span>悦哥确认了之前提出的 5→3 方案，直接执行：</div>
+            </div>
+          </td>
+          <td class="pass">✅ PASS</td>
+        </tr>
+      
+        <tr>
+          <td><code>Creem test-api.creem.io</code></td>
+          <td>Creem 测试 API 地址</td>
+          <td><span class="tag tag-low">low</span></td>
+          <td>payment</td>
+          <td>payment</td>
+          <td>
+            payment (40%)
+          </td>
+          <td>
+            <div class="search-results">
+              <div class="item"><span class="tier-icon">🟢</span>- 腾讯云（硅谷）：43.162.104.2，user ubuntu，Swarm AI 部署</div><div class="item"><span class="tier-icon">🟢</span>- **问题**: Discord bot 在线但无法发送消息，`message` 工具报 "Unknown Chann</div><div class="item"><span class="tier-icon">🟢</span>给 PeonAI 的 Chrome 插件接入可复用的 test/live 支付链路，不影响线上用户。</div>
+            </div>
+          </td>
+          <td class="pass">✅ PASS</td>
+        </tr>
+      
+        <tr>
+          <td><code>pm2 ecosystem.config</code></td>
+          <td>pm2 配置文件</td>
+          <td><span class="tag tag-low">low</span></td>
+          <td>infra</td>
+          <td>infra</td>
+          <td>
+            infra (40%)
+          </td>
+          <td>
+            <div class="search-results">
+              <div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:main</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div>
+            </div>
+          </td>
+          <td class="pass">✅ PASS</td>
+        </tr>
+      
+        <tr>
+          <td><code>newspaper.css 移动端</code></td>
+          <td>博客移动端样式修复</td>
+          <td><span class="tag tag-low">low</span></td>
+          <td>blog</td>
+          <td>blog</td>
+          <td>
+            blog (127%)<br>openclaw (5%)
+          </td>
+          <td>
+            <div class="search-results">
+              <div class="item"><span class="tier-icon">🟢</span>- 修复 peon.blog 首页移动端布局问题（`newspaper.css` 760px 断点）</div><div class="item"><span class="tier-icon">🟢</span>- 新 session 启动，读取 SOUL.md、USER.md、MEMORY.md</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:main</div>
+            </div>
+          </td>
+          <td class="pass">✅ PASS</td>
+        </tr>
+      
+        <tr>
+          <td><code>edge-tts opus 语音</code></td>
+          <td>TTS 语音生成</td>
+          <td><span class="tag tag-low">low</span></td>
+          <td>infra</td>
+          <td>infra</td>
+          <td>
+            infra (92%)<br>openclaw (21%)
+          </td>
+          <td>
+            <div class="search-results">
+              <div class="item"><span class="tier-icon">🟢</span>- 账号：Peon，抖音号 59267000653</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:main</div><div class="item"><span class="tier-icon">🟢</span>- **Session Key**: agent:main:discord:direct:568646458467942</div>
+            </div>
+          </td>
+          <td class="pass">✅ PASS</td>
+        </tr>
+      
+        <tr>
+          <td><code>/tmp/landing-test</code></td>
+          <td>废弃的临时目录（应该被过滤）</td>
+          <td><span class="tag tag-negative">negative</span></td>
+          <td>—</td>
+          <td>—</td>
+          <td>
+            无匹配
+          </td>
+          <td>
+            <div class="search-results">
+              无匹配
+            </div>
+          </td>
+          <td class="pass">✅ PASS</td>
+        </tr>
+      
+        <tr>
+          <td><code>上个月做了什么</code></td>
+          <td>极度模糊的时间查询</td>
+          <td><span class="tag tag-extreme">extreme</span></td>
+          <td>—</td>
+          <td>chrome-ext</td>
+          <td>
+            chrome-ext (12%)<br>blog (8%)<br>payment (4%)
+          </td>
+          <td>
+            <div class="search-results">
+              <div class="item"><span class="tier-icon">🟢</span>Wisp 通过 mailbox 通知：悦哥今晚做了一轮浏览器插件选题调研（海外市场），经两轮筛选 + Far Seer </div><div class="item"><span class="tier-icon">🟢</span>- 快速否定不合适的方向，不纠结。说"算了"就是真的算了</div><div class="item"><span class="tier-icon">🟢</span>悦哥确认了之前提出的 5→3 方案，直接执行：</div>
+            </div>
+          </td>
+          <td class="pass">✅ PASS</td>
+        </tr>
+      
+        <tr>
+          <td><code>出过什么 bug</code></td>
+          <td>模糊找 bug 记录</td>
+          <td><span class="tag tag-extreme">extreme</span></td>
+          <td>—</td>
+          <td>blog</td>
+          <td>
+            blog (6%)<br>chrome-ext (4%)
+          </td>
+          <td>
+            <div class="search-results">
+              <div class="item"><span class="tier-icon">🟢</span>悦哥确认了之前提出的 5→3 方案，直接执行：</div><div class="item"><span class="tier-icon">🟢</span>1. **改了就验** — 任何影响输出的修改，必须在下一步之前验证</div><div class="item"><span class="tier-icon">🟢</span>Wisp 通过 mailbox 通知：悦哥今晚做了一轮浏览器插件选题调研（海外市场），经两轮筛选 + Far Seer </div>
+            </div>
+          </td>
+          <td class="pass">✅ PASS</td>
+        </tr>
+      
+    </tbody>
+  </table>
+</div>
+
+<div class="section">
+  <h2>分析</h2>
+  <table>
+    <thead><tr><th>维度</th><th>观察</th></tr></thead>
+    <tbody>
+      <tr><td>高模糊度查询</td><td>4/4 通过。单个中文词（如"支付"）依赖 bigram 分词，对短查询召回率有限。</td></tr>
+      <tr><td>中模糊度查询</td><td>6/6 通过。关键词组合（如"Chrome 翻译插件"）命中率显著提升。</td></tr>
+      <tr><td>低模糊度查询</td><td>5/5 通过。具体术语（如"fonts.bunny.net"）精确匹配效果好。</td></tr>
+      <tr><td>过期过滤</td><td>✅ 无泄漏，过期记忆被正确过滤。</td></tr>
+      <tr><td>衰减梯度</td><td>fresh 46 / recent 26 / faded 20 / ghost 0 / expired 32。梯度分布合理。</td></tr>
+      <tr><td>改进方向</td><td>1) 高模糊度查询需要语义 embedding 支持<br>2) 中文分词可升级为 jieba 或类似方案<br>3) 可加入 domain 别名映射提高召回</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<footer>
+  Memory Decay v0.1.0 · 测试时间 2026/3/18 18:40:43 · 124 memories · 18 test cases
+</footer>
+
+</body>
+</html>
