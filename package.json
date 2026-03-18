@@ -1,0 +1,18 @@
+{
+  "name": "memory-decay",
+  "version": "0.1.0",
+  "description": "Human-like fuzzy memory system with gradient decay for AI agents",
+  "type": "module",
+  "bin": {
+    "memory-decay": "./bin/cli.mjs"
+  },
+  "scripts": {
+    "build": "echo 'no build needed, pure mjs'",
+    "seed": "node bin/cli.mjs seed",
+    "test": "node bin/cli.mjs stats"
+  },
+  "dependencies": {
+    "commander": "^12.0.0",
+    "uuid": "^9.0.0"
+  }
+}
