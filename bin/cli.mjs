@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// CLI 入口
+// CLI entry point
 import { Command } from 'commander';
 import { v4 as uuid } from 'uuid';
 import { ensureDirs, readIndex, getStoreRoot, writeMemory as storeWrite, countFiles } from '../lib/store.mjs';
@@ -102,7 +102,7 @@ program
       if (e.body && (e.tier === 'fresh' || e.tier === 'recent')) {
         console.log(`     ${e.body.slice(0, 200)}${e.body.length > 200 ? '...' : ''}`);
       } else if (e.tier === 'faded') {
-        console.log(`     [详细内容已归档]`);
+        console.log(`     [detailed content archived]`);
       }
     }
   });
@@ -110,7 +110,7 @@ program
 // ── decay ──
 program
   .command('decay')
-  .description('Run decay — compress memories by age')
+  .description('Run decay — demote memories by age')
   .option('--dry-run', 'Preview changes without applying')
   .action(async (opts) => {
     ensureDirs();
@@ -152,43 +152,6 @@ program
     for (const [t, n] of Object.entries(types)) console.log(`  ${t}: ${n}`);
   });
 
-// ── seed ──
-program
-  .command('seed')
-  .description('Seed test memories for demo')
-  .action(() => {
-    ensureDirs();
-    const seeds = [
-      { type: 'decision', domain: 'payment', summary: 'Creem 作为支付平台，不用 Stripe', ttl: 'permanent', confidence: 0.95, body: '选择 Creem 因为：1) 国内友好 2) API 简洁 3) 支持 test mode。Stripe 需要海外实体。', daysAgo: 0 },
-      { type: 'experiment', domain: 'payment', summary: '试了 LemonSqueezy，体验一般', ttl: '7d', confidence: 0.4, body: 'LemonSqueezy 注册流程太长，dashboard 慢，放弃。', daysAgo: 5 },
-      { type: 'reference', domain: 'payment', summary: 'Creem test API: https://test-api.creem.io', ttl: '30d', confidence: 0.9, body: 'Test key: creem_test_xxx, Live key: creem_xxx。文档在 docs.creem.io/llms.txt', daysAgo: 10 },
-      { type: 'decision', domain: 'blog', summary: '博客双语方案：中文 .md + 英文 .en.md', ttl: 'permanent', confidence: 0.95, body: 'Hugo i18n 原生支持，defaultContentLanguage = zh，英文用 .en.md 后缀。', daysAgo: 2 },
-      { type: 'status', domain: 'blog', summary: 'peon.blog 移动端布局已修复', ttl: '7d', confidence: 0.9, body: 'newspaper.css 760px 断点，标题 clamp 降到 1.8rem，副栏 line-clamp 5。', daysAgo: 0 },
-      { type: 'temporary', domain: 'infra', summary: '试了把落地页放 /tmp/landing-test/', ttl: '3d', confidence: 0.3, body: '结构不对，目录已废弃。', daysAgo: 8 },
-      { type: 'decision', domain: 'infra', summary: 'LLM Gateway 部署在本地 3456 端口', ttl: 'permanent', confidence: 0.95, body: 'pm2 管理，ecosystem.config.cjs 含 ADMIN_KEY。', daysAgo: 20 },
-      { type: 'experiment', domain: 'chrome-ext', summary: 'Side-by-Side Translator Pro 档位定价 $4.99/月', ttl: '30d', confidence: 0.7, body: '参考竞品定价，Pro 功能包括：无限翻译、自定义模型、导出。', daysAgo: 16 },
-      { type: 'reference', domain: 'infra', summary: 'fonts.loli.net 已挂，换 fonts.bunny.net', ttl: '30d', confidence: 0.9, body: 'loli.net 返回 content-length:0。Bunny Fonts 是 Google Fonts 隐私替代，亚洲有节点。', daysAgo: 1 },
-      { type: 'status', domain: 'chrome-ext', summary: 'YouTube Bookmarker 等待 Chrome Web Store 审核', ttl: '7d', confidence: 0.8, body: '提交于 3月15日，通常 3-5 个工作日。', daysAgo: 35 },
-    ];
-
-    for (const s of seeds) {
-      const created = new Date(Date.now() - s.daysAgo * 86400000).toISOString();
-      const entry = {
-        id: uuid(),
-        created,
-        type: s.type,
-        domain: s.domain,
-        summary: s.summary,
-        ttl: s.ttl,
-        confidence: s.confidence,
-        tier: 'fresh', // decay 会修正
-      };
-      storeWrite(entry, s.body);
-    }
-    console.log(`🌱 Seeded ${seeds.length} test memories.`);
-    console.log('Run `memory-decay decay` to apply tier assignments.');
-  });
-
 // ── embed ──
 program
   .command('embed')
@@ -217,7 +180,7 @@ program
       const displayText = displaySummary(e.summary, e.tier);
       console.log(`  ${tierIcon} [${e.tier}] ${date} | ${e.domain} | sim: ${(e.rawSim * 100).toFixed(1)}% | score: ${(e.score * 100).toFixed(1)}%`);
       console.log(`     ${displayText}`);
-      if (e.tier === 'faded') console.log(`     [详细内容已归档]`);
+      if (e.tier === 'faded') console.log(`     [detailed content archived]`);
     }
   });
 
@@ -242,7 +205,7 @@ program
       const displayText = displaySummary(e.summary, e.tier);
       console.log(`  ${tierIcon} [${e.tier}] ${date} | ${e.domain} | hybrid: ${(e.hybridScore * 100).toFixed(0)}% (kw:${kw} sem:${sem})`);
       console.log(`     ${displayText}`);
-      if (e.tier === 'faded') console.log(`     [详细内容已归档]`);
+      if (e.tier === 'faded') console.log(`     [detailed content archived]`);
     }
   });
 

@@ -1,238 +1,177 @@
 ---
 name: memory-decay
-description: Human-like fuzzy memory system with gradient decay for AI agents. Implements birth tagging, time-based compression, and hybrid retrieval (keyword + semantic). Use when agents need to write, search, or maintain memories with natural forgetting behavior.
+description: Human-like fuzzy memory system with gradient decay for AI agents. Manage agent memories with birth tagging (type/ttl/confidence), time-based tier demotion (fresh→recent→faded→ghost→expired), and hybrid retrieval (TF-IDF keyword + semantic embedding). Use when agents need to write structured memories, search past decisions with fuzzy queries, run periodic decay maintenance, view memory stats, or import existing memory files. Also use when asked about memory management, forgetting, recall accuracy, or memory lifecycle.
 ---
 
-# Memory Decay — 模拟人类模糊记忆的 Agent 记忆系统
+# Memory Decay
 
-**核心理念：** 人类记忆不是数据库。人不会精确检索，而是"好像之前搞过什么……大概在哪个方向？"然后逐步聚焦。这个系统模拟这个过程。
+Simulate human-like fuzzy memory for AI agents. Memories fade over time — recent ones are vivid, old ones become hazy, expired ones disappear from search.
 
-## 三个核心机制
+## Core Mechanisms
 
-### 1. 写入打标（Birth Tag）
+### 1. Birth Tagging
 
-每条记忆写入时自带元数据：
+Every memory gets metadata at write time:
 
-```markdown
-<!-- meta: type=decision, ttl=permanent, confidence=0.9 -->
-选择 Creem 作为支付平台，因为国内友好 + API 简洁。
+```
+type:       decision | experiment | reference | status | temporary
+ttl:        3d | 7d | 30d | permanent
+confidence: 0.0-1.0
 ```
 
-**必填字段：**
-- `type`: `decision` | `experiment` | `reference` | `status` | `temporary`
-- `ttl`: `3d` | `7d` | `30d` | `permanent`
-- `confidence`: 0.0-1.0（写入时的确定程度）
+### 2. Time-Based Decay
 
-### 2. 时间梯度衰减（Decay Tiers）
+| Age | Tier | Display |
+|-----|------|---------|
+| 0-3d | fresh 🟢 | Full content |
+| 4-14d | recent 🔵 | Full content |
+| 15-30d | faded 🟡 | Summary + [archived] |
+| 30d+ | ghost 👻 | [archived] first 15 chars... |
+| past ttl | expired | Hidden from search |
 
-记忆随时间自动降级，不是删除，是压缩：
+`permanent` memories never decay.
 
-| 年龄 | 层级 | 保留内容 |
-|------|------|----------|
-| 0-3天 | fresh | 完整原文 |
-| 4-14天 | recent | 原文（检索优先返回摘要） |
-| 15-30天 | faded | 仅摘要 + 元数据 |
-| 30天+ | ghost | 仅一行索引 |
-| ttl过期 | expired | 标记过期，检索时跳过 |
+### 3. Hybrid Retrieval
 
-`permanent` 类型不衰减。
+- Keyword: TF-IDF + CJK bigram tokenization + domain alias boost
+- Semantic: Embedding model via OpenAI-compatible API
+- Fusion: keyword 40% + semantic 60%, weighted by tier
 
-### 3. 混合检索（Keyword + Semantic）
-
-- **关键词匹配**：TF-IDF + domain 别名映射（中文短查询友好）
-- **语义搜索**：Qwen3-Embedding-8B（中文语义理解）
-- **融合排序**：加权合并（kw 40% + sem 60%）
-
-## 快速开始
-
-### 安装
+## Quick Start
 
 ```bash
-cd ~/projects/memory-decay
+cd <skill-dir>
 npm install
+
+# Seed demo data
+node scripts/seed-demo.mjs
+node bin/cli.mjs decay
+
+# Search
+node bin/cli.mjs search "payment platform"
+node bin/cli.mjs hybrid "that billing thing we set up"
+
+# Stats
+node bin/cli.mjs stats
 ```
 
-### 写入记忆
+## CLI Reference
+
+### Write a memory
 
 ```bash
 node bin/cli.mjs write \
   --type decision \
   --domain payment \
-  --summary "Creem 作为支付平台" \
+  --summary "Chose Stripe over Paddle for checkout" \
   --ttl permanent \
   --confidence 0.95 \
-  --body "选择 Creem 而不是 Stripe，因为..."
+  --body "Stripe Checkout Session: hosted page, multi-language, reliable webhooks."
 ```
 
-### 建立索引
+### Search
 
 ```bash
-# 首次使用或新增记忆后
+# Keyword search
+node bin/cli.mjs search "webhook"
+
+# Semantic search (requires embedding index)
 node bin/cli.mjs embed
+node bin/cli.mjs semantic "how did we handle payments"
+
+# Hybrid search (recommended)
+node bin/cli.mjs hybrid "that billing thing"
+
+# Browse by domain
+node bin/cli.mjs scan "deploy"
+node bin/cli.mjs focus infra
 ```
 
-### 检索
+### Maintenance
 
 ```bash
-# 混合检索（推荐）
-node bin/cli.mjs hybrid "好像之前搞过收费的事"
-
-# 关键词检索
-node bin/cli.mjs search "Creem API"
-
-# 语义检索
-node bin/cli.mjs semantic "那个收费的事怎么搞的"
-
-# 模糊扫描 → 聚焦
-node bin/cli.mjs scan "支付"
-node bin/cli.mjs focus payment
-```
-
-### 衰减维护
-
-```bash
-# 预览衰减变化
+# Preview decay changes
 node bin/cli.mjs decay --dry-run
 
-# 执行衰减
+# Apply decay
 node bin/cli.mjs decay
-```
 
-### 统计
-
-```bash
+# View stats
 node bin/cli.mjs stats
 ```
 
-## 集成到 Agent 工作流
+## Embedding Configuration
 
-### 写入规范
+Semantic search requires an OpenAI-compatible embedding API. Set via environment variables:
 
-**允许的位置：**
-- `memory/episodic/YYYY-MM-DD.md` — 日常事件
-- `memory/semantic/*.md` — 长期事实
-- `memory/procedural/*.md` — 可复用流程
-
-**触发条件（满足其一即可写）：**
-1. 用户明确要求记住
-2. session 即将结束，关键结论会丢失
-3. 稳定的事实、偏好、决策
-4. 可复用的工作流
-
-**写入格式：**
-
-```markdown
-<!-- meta: type=decision, ttl=permanent, confidence=0.95 -->
-
-## 2026-03-18 — Creem 支付集成
-
-选择 Creem 作为支付平台，原因：
-1. 国内友好，无需海外实体
-2. API 简洁，test mode 完善
-3. 支持 webhook
-
-相关文档：https://docs.creem.io
-```
-
-### 检索规范
-
-**场景1：精确查询**
 ```bash
-# 用户："Creem 的 API key 在哪"
-node bin/cli.mjs search "Creem API key"
+export EMBED_API_BASE=https://api.openai.com/v1   # or any compatible endpoint
+export EMBED_API_KEY=sk-xxx
+export EMBED_MODEL=text-embedding-3-small          # or any model
 ```
 
-**场景2：模糊回忆**
+Without embedding config, keyword search and hybrid search (keyword portion only) still work.
+
+## LLM Summary Generation
+
+When importing bulk memories, use the LLM summary layer for high-quality summaries. Configure:
+
 ```bash
-# 用户："好像之前搞过收费的事"
-node bin/cli.mjs hybrid "收费"
+export LLM_API_BASE=http://localhost:3456/v1   # OpenAI-compatible endpoint
+export LLM_API_KEY=your-key
+export LLM_MODEL=gpt-4o-mini                   # or any chat model
 ```
 
-**场景3：探索式检索**
-```bash
-# 用户："支付相关的都有什么"
-node bin/cli.mjs scan "支付"
-node bin/cli.mjs focus payment
-```
+Import script: `node scripts/import-markdown.mjs <directory> [--llm-summary]`
 
-### 定期维护
+## Memory Quality Guidelines
 
-**Cron 任务（建议每天凌晨）：**
-```bash
-0 2 * * * cd ~/projects/memory-decay && node bin/cli.mjs decay
-```
+Good summaries (high information density):
+- "Chose Stripe over Paddle: hosted checkout, multi-language, reliable webhooks"
+- "Blog i18n: English .en.md suffix, Hugo native i18n support"
+- "Fixed mobile layout: newspaper.css 760px breakpoint, title clamp 1.8rem"
 
-**手动检查：**
-```bash
-# 查看即将过期的记忆
-node bin/cli.mjs decay --dry-run | grep "→ expired"
-```
+Bad summaries (noise):
+- "I am an AI assistant" (self-introduction, not a memory)
+- "OK, continuing..." (chat fragment)
+- "/home/user/projects/..." (bare path, no context)
 
-## 数据质量要求
+Principle: every memory must be a self-contained statement with what + why + outcome.
 
-**好的 summary（信息密度高）：**
-- ✅ "Creem 支付集成：选择 Creem 而非 Stripe，因为国内友好"
-- ✅ "博客双语方案：中文 .md + 英文 .en.md，Hugo i18n 原生支持"
-- ✅ "修复 peon.blog 移动端布局：newspaper.css 760px 断点"
+## Integration with Agent Workflows
 
-**坏的 summary（噪音）：**
-- ❌ "我是 Peon 🔨，悦哥你的 AI 助手"（自我介绍，不是记忆）
-- ❌ "好，继续~接近目标了"（对话碎片）
-- ❌ "Session Key: agent:main:..."（元数据）
-- ❌ "路径：/home/chiny/..."（孤立路径，无上下文）
+### Write triggers (write memory when any is true)
 
-**原则：**
-1. 每条记忆必须是**自包含的陈述句**
-2. 避免对话记录、元数据、流程说明
-3. 优先记录**决策 + 理由**，而不是单纯的事实
+1. User explicitly asks to remember something
+2. Session ending — key conclusion would be lost
+3. Stable fact, preference, or decision emerged
+4. Reusable workflow discovered
 
-## 文件结构
+### Retrieval patterns
+
+- Precise query → `search "Stripe webhook"`
+- Fuzzy recall → `hybrid "that payment thing"`
+- Explore domain → `scan "deploy"` then `focus infra`
+
+### Periodic maintenance
+
+Run `node bin/cli.mjs decay` daily (cron or agent heartbeat).
+
+## File Structure
 
 ```
 memory-decay/
-├── bin/
-│   └── cli.mjs              # CLI 入口
+├── SKILL.md              # This file
+├── bin/cli.mjs           # CLI entry point
 ├── lib/
-│   ├── store.mjs            # 文件存储层
-│   ├── decay.mjs            # 衰减引擎
-│   ├── search.mjs           # 关键词检索
-│   ├── embed.mjs            # 语义 embedding
-│   └── hybrid.mjs           # 混合检索
-├── scripts/
-│   ├── import-openclaw.mjs  # 从 OpenClaw 导入
-│   └── test-fuzzy.mjs       # 模糊检索测试
-├── store/
-│   ├── index.json           # 全局索引
-│   ├── embeddings.json      # 向量缓存
-│   ├── fresh/               # 完整记忆
-│   ├── archive/             # 衰减后的原文
-│   └── expired/             # 过期记忆
-├── DESIGN.md                # 设计文档
-└── package.json
+│   ├── store.mjs         # File system storage
+│   ├── decay.mjs         # Decay engine
+│   ├── search.mjs        # TF-IDF keyword search
+│   ├── embed.mjs         # Semantic embedding
+│   ├── hybrid.mjs        # Hybrid fusion search
+│   ├── compress.mjs      # Layered display
+│   └── summarize.mjs     # LLM summary generation
+└── scripts/
+    ├── seed-demo.mjs        # Generate demo memories
+    └── import-markdown.mjs  # Import from markdown directory
 ```
-
-## 技术栈
-
-- **存储**：文件系统（JSON）
-- **关键词匹配**：TF-IDF + CJK bigram 分词
-- **语义搜索**：Qwen3-Embedding-8B via 302.ai
-- **融合算法**：加权分数融合（Weighted Score Fusion）
-
-## 已知限制
-
-1. **不支持实时监听**：需要手动运行 `decay` 维护
-2. **embedding 需要网络**：依赖 302.ai API（可替换为本地模型）
-3. **数据质量敏感**：垃圾进垃圾出，需要高质量 summary
-
-## 下一步改进方向
-
-1. **LLM 摘要层**：导入时自动生成高质量 summary
-2. **语义压缩**：faded/ghost 层自动生成摘要和索引
-3. **引用频率加权**：被反复检索的记忆保持高权重
-4. **本地 embedding**：支持离线推理（fastembed）
-
----
-
-**License:** MIT  
-**Author:** Peon  
-**Version:** 0.1.0

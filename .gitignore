@@ -1,2 +1,4 @@
-store/
 node_modules/
+store/
+local_cache/
+*.log
