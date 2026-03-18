@@ -99,6 +99,21 @@ node bin/cli.mjs decay
 
 Imported files become `reference` memories in the `general` domain by default. Re-tag manually if needed.
 
+## Optional configuration
+
+Create `store/config.json` to customize search behavior:
+
+```json
+{
+  "domainAliases": {
+    "payment": ["billing", "checkout", "subscription", "invoice"],
+    "infra": ["deploy", "server", "docker", "ci", "ssl"]
+  }
+}
+```
+
+Domain aliases boost search relevance when a query matches an alias. This is entirely optional — keyword search works fine without it.
+
 ## Agent workflow
 
 Write memory when any of these is true:

@@ -112,6 +112,21 @@ Use search for direct lookup, scan for broad exploration, and focus for domain d
 Do not treat expired memories as active evidence.
 ```
 
+## Optional: domain aliases
+
+Create `store/config.json` to boost search relevance for specific domains:
+
+```json
+{
+  "domainAliases": {
+    "payment": ["billing", "checkout", "subscription"],
+    "infra": ["deploy", "server", "docker", "ci"]
+  }
+}
+```
+
+This is optional. Keyword search works without it.
+
 ## Directory layout
 
 ```text
