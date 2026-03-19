@@ -1,31 +1,41 @@
 ---
 name: memory-decay
-description: File-based memory lifecycle workflow for AI agents. Manage durable memories with birth tagging (type/ttl/confidence), time-based decay (fresh->recent->faded->ghost->expired), keyword retrieval, layered display, and maintenance scripts. Use when agents need a practical memory process without embeddings, external APIs, or package dependencies. Includes both Node.js and Python standard-library scripts so the agent can choose the runtime available on the host.
+description: File-based memory decay workflow for AI agents that use markdown memory files. Build a derived index from markdown memories, apply type/ttl/confidence rules, filter expired items, and retrieve fresher memories first without replacing the original markdown store. Use when agents need practical memory decay behavior for OpenClaw-style markdown memory directories.
 ---
 
 # Memory Decay
 
-Use this skill to give an agent a simple, durable memory workflow without external services or package installation.
+Use this skill to apply decay and retrieval rules to a markdown memory directory.
 
-## Use the scripts
+Do not treat this toolkit as a replacement storage engine. Markdown remains the source of truth. The index is derived data.
 
-Choose whichever runtime already exists on the host:
+## Core flow
 
-- Node.js: `node scripts/memory_decay.js ...`
-- Python: `python3 scripts/memory_decay.py ...`
+1. Keep writing memory in markdown files
+2. Add inline meta tags when possible
+3. Build or refresh the derived index from markdown
+4. Query the index
+5. Return the original markdown source path when citing memory
 
-Both runtimes support the same commands:
+## Inline meta tags
 
-- `write`
-- `search`
-- `scan`
-- `focus`
-- `decay`
-- `stats`
+When memory is stored directly in markdown, put an inline meta comment at the top of the block when possible:
 
-## Write format
+```markdown
+<!-- meta: type=decision, ttl=permanent, confidence=0.95 -->
+Chose PostgreSQL for production: concurrency, full-text search, mature ecosystem.
 
-Every memory gets metadata at write time:
+<!-- meta: type=experiment, ttl=7d, confidence=0.4 -->
+Tried landing page under /tmp/test-landing/, structure wrong, likely discarded.
+```
+
+If metadata is missing, the indexer falls back to conservative defaults:
+
+- `type=reference`
+- `ttl=30d`
+- `confidence=0.7`
+
+## Metadata model
 
 ```text
 type:       decision | experiment | reference | status | temporary
@@ -39,23 +49,6 @@ Type guide:
 - `reference` - factual info such as paths, configs, and API details
 - `status` - current project or task state that will be superseded
 - `temporary` - short-lived context likely to expire quickly
-
-Confidence guide:
-- Verified facts -> 0.9+
-- Unverified or inferred -> 0.5-0.7
-- Pure experiment -> 0.3-0.5
-
-## Inline meta tags
-
-When writing directly into markdown memory files instead of using the scripts, put an inline meta comment at the top of each block:
-
-```markdown
-<!-- meta: type=decision, ttl=permanent, confidence=0.95 -->
-Chose PostgreSQL for production: concurrency, full-text search, mature ecosystem.
-
-<!-- meta: type=experiment, ttl=7d, confidence=0.4 -->
-Tried landing page under /tmp/test-landing/, structure wrong, likely discarded.
-```
 
 ## Writing rules
 
@@ -82,71 +75,48 @@ Respect metadata while retrieving:
 - `temporary` past its `ttl` -> ignore entirely
 - `decision` with `ttl=permanent` -> trust unless explicitly superseded
 
-## Decay model
+## Indexing
 
-| Age | Tier | Behavior |
-|-----|------|----------|
-| 0-3d | fresh | full display |
-| 4-14d | recent | full display |
-| 15-30d | faded | summary + archived note |
-| 30d+ | ghost | archived preview only |
-| past ttl | expired | excluded from search |
-
-## Commands
-
-### Write
+Build or refresh the derived index from the markdown memory root:
 
 ```bash
-node scripts/memory_decay.js write --type decision --domain payment --summary "Chose Stripe Checkout" --ttl permanent --confidence 0.95
-python3 scripts/memory_decay.py write --type decision --domain payment --summary "Chose Stripe Checkout" --ttl permanent --confidence 0.95
+python3 scripts/sync_markdown_index.py /path/to/openclaw/memory
 ```
 
-### Retrieve
+This writes:
+
+```text
+.memory-decay/index.json
+```
+
+The index stores metadata, tier assignments, and source paths pointing back to the markdown files.
+
+## Querying
 
 ```bash
-node scripts/memory_decay.js search "billing"
-node scripts/memory_decay.js scan "deploy"
-node scripts/memory_decay.js focus infra
+python3 scripts/query_markdown_index.py search "billing"
+python3 scripts/query_markdown_index.py scan "deploy"
+python3 scripts/query_markdown_index.py focus semantic
 ```
 
-```bash
-python3 scripts/memory_decay.py search "billing"
-python3 scripts/memory_decay.py scan "deploy"
-python3 scripts/memory_decay.py focus infra
-```
+Always prefer returning the original markdown source path instead of treating the index as the memory itself.
 
-### Maintenance
-
-```bash
-node scripts/memory_decay.js decay
-python3 scripts/memory_decay.py decay
-```
+## Daily refresh
 
 If the host supports cron and the user wants automation, create the cron entry explicitly during the task instead of relying on a bundled installer script.
 
 Example cron line:
 
 ```bash
-0 2 * * * cd /path/to/memory-decay && /usr/bin/env bash scripts/daily-decay.sh >> /path/to/memory-decay/memory-decay.log 2>&1
+0 2 * * * cd /path/to/memory-decay && python3 scripts/sync_markdown_index.py /path/to/openclaw/memory >> /path/to/memory-decay/memory-decay.log 2>&1
 ```
 
-## Import markdown
+## Decay model
 
-```bash
-node scripts/import-markdown.mjs /path/to/markdown-dir
-```
-
-The importer walks directories recursively and stores imported files as `reference` memories in the `general` domain by default.
-
-## Optional configuration
-
-Create `store/config.json` if you want domain alias boosts for search:
-
-```json
-{
-  "domainAliases": {
-    "payment": ["billing", "checkout", "subscription"],
-    "infra": ["deploy", "server", "docker", "ci"]
-  }
-}
-```
+| Age | Tier | Behavior |
+|-----|------|----------|
+| 0-3d | fresh | full display |
+| 4-14d | recent | full display |
+| 15-30d | faded | summary only |
+| 30d+ | ghost | archived preview only |
+| past ttl | expired | excluded from retrieval |
