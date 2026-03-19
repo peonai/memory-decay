@@ -94,6 +94,12 @@ The index stores metadata, tier assignments, and source paths pointing back to t
 ## Querying
 
 ```bash
+# Node.js
+node scripts/query_markdown_index.mjs search "billing"
+node scripts/query_markdown_index.mjs scan "deploy"
+node scripts/query_markdown_index.mjs focus semantic
+
+# Python
 python3 scripts/query_markdown_index.py search "billing"
 python3 scripts/query_markdown_index.py scan "deploy"
 python3 scripts/query_markdown_index.py focus semantic

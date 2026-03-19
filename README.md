@@ -40,6 +40,10 @@ Chose PostgreSQL for production: concurrency, full-text search, mature ecosystem
 Run this once after installation, and again whenever you want to refresh the index:
 
 ```bash
+# Node.js
+node scripts/sync_markdown_index.mjs /path/to/openclaw/memory
+
+# Python
 python3 scripts/sync_markdown_index.py /path/to/openclaw/memory
 ```
 
@@ -52,6 +56,12 @@ This creates a derived index in:
 ### 3. Query the index
 
 ```bash
+# Node.js
+node scripts/query_markdown_index.mjs search "billing"
+node scripts/query_markdown_index.mjs scan "deploy"
+node scripts/query_markdown_index.mjs focus semantic
+
+# Python
 python3 scripts/query_markdown_index.py search "billing"
 python3 scripts/query_markdown_index.py scan "deploy"
 python3 scripts/query_markdown_index.py focus semantic
@@ -66,6 +76,10 @@ If the host supports cron and the user wants automation, let the agent create a 
 Example:
 
 ```bash
+# Node.js
+0 2 * * * cd /path/to/memory-decay && node scripts/sync_markdown_index.mjs /path/to/openclaw/memory >> /path/to/memory-decay/memory-decay.log 2>&1
+
+# Python
 0 2 * * * cd /path/to/memory-decay && python3 scripts/sync_markdown_index.py /path/to/openclaw/memory >> /path/to/memory-decay/memory-decay.log 2>&1
 ```
 
