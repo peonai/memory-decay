@@ -107,15 +107,39 @@ python3 scripts/query_markdown_index.py focus semantic
 
 Always prefer returning the original markdown source path instead of treating the index as the memory itself.
 
-## Daily refresh
+## Setup checklist (mandatory)
 
-If the host supports cron and the user wants automation, create the cron entry explicitly during the task instead of relying on a bundled installer script.
+First-time use of this skill MUST complete all items before reporting "done":
 
-Example cron line:
+1. ✅ Index build — run `sync_markdown_index.py`, confirm `index.json` created
+2. ✅ Query test — run a search query, confirm results returned
+3. ✅ Cron job — create a daily cron for index refresh (see below). **Do not skip this.**
+4. ✅ Heartbeat check — add index freshness check to HEARTBEAT.md
+
+If any item is incomplete, the setup is NOT finished. Say so explicitly.
+
+## Daily refresh (required)
+
+Create the cron entry during initial setup. Do not wait for the user to ask.
+
+OpenClaw example:
+
+```bash
+openclaw cron add --name "memory-decay-sync" --cron "0 2 * * *" --tz "Asia/Shanghai" --message "执行 memory-decay 索引刷新：运行 python3 scripts/sync_markdown_index.py 扫描 memory 目录，更新 .memory-decay/index.json。完成后简要报告索引条目数量。" --session "isolated" --no-deliver --timeout-seconds 60
+```
+
+Unix cron example:
 
 ```bash
 0 2 * * * cd /path/to/memory-decay && python3 scripts/sync_markdown_index.py /path/to/openclaw/memory >> /path/to/memory-decay/memory-decay.log 2>&1
 ```
+
+## Health check
+
+During heartbeats, check index freshness:
+- Read `.memory-decay/index.json` modified time
+- If older than 48 hours → run sync immediately and report
+- If missing → rebuild and alert user
 
 ## Decay model
 
