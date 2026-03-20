@@ -1,9 +1,11 @@
 # memory-decay
 
-A file-based memory indexing workflow for AI agents.
+A file-based memory indexing and hygiene workflow for AI agents.
 
 It provides:
 - metadata tagging rules for markdown memories (`type`, `ttl`, `confidence`)
+- memory layout rules for markdown directories
+- a layout audit for root-level memory hygiene
 - time-based decay (`fresh -> recent -> faded -> ghost -> expired`)
 - a local index built from markdown memory files
 - keyword search with domain scanning
@@ -15,18 +17,44 @@ It does not replace your markdown memory. Markdown remains the source of truth.
 
 OpenClaw memory already lives in a markdown directory tree.
 
-This toolkit does not create a competing memory system anymore.
-Instead, it builds a derived index from markdown files so an agent can:
-- filter stale memories
-- rank fresher memories higher
-- search by domain and keyword
-- keep returning the original markdown source path
+This toolkit does not create a competing memory system. Instead, it defines:
+- where memory files should live
+- how memory metadata should be tagged
+- how to audit structure hygiene
+- how to build a derived retrieval index from markdown files
+
+## Required memory layout
+
+`memory/` root should stay clean.
+
+Allowed root files:
+- `MEMORY.md`
+
+Allowed root directories:
+- `memory/episodic/`
+- `memory/semantic/`
+- `memory/procedural/`
+- `memory/snapshots/`
+- `memory/legacy/`
+- `memory/learnings/`
+- `memory/archive/`
+
+New markdown memory files should not be written directly under `memory/`.
+
+Recommended type-to-directory mapping:
+- `decision` -> `memory/semantic/`
+- `reference` -> `memory/semantic/`
+- `status` -> `memory/episodic/`
+- `experiment` -> `memory/episodic/`
+- `temporary` -> `memory/snapshots/`
+
+If placement is unclear, use an existing file in the best-fit subdirectory or move the item into `memory/legacy/`. Do not spray new files into `memory/` root.
 
 ## Real workflow
 
-### 1. Keep writing memory in markdown
+### 1. Write memory in markdown, in the right directory
 
-Use normal OpenClaw memory files.
+Use normal OpenClaw memory files, but place them in the correct subdirectory.
 
 If possible, add inline meta tags to memory blocks:
 
@@ -35,7 +63,17 @@ If possible, add inline meta tags to memory blocks:
 Chose PostgreSQL for production: concurrency, full-text search, mature ecosystem.
 ```
 
-### 2. Build the index
+### 2. Audit layout first
+
+Before rebuilding the index, check structure hygiene:
+
+```bash
+python3 scripts/audit_memory_layout.py /path/to/openclaw/memory
+```
+
+If stray root markdown files appear, move them out of `memory/` root before calling setup complete.
+
+### 3. Build the index
 
 Run this once after installation, and again whenever you want to refresh the index:
 
@@ -53,7 +91,7 @@ This creates a derived index in:
 .memory-decay/index.json
 ```
 
-### 3. Query the index
+### 4. Query the index
 
 ```bash
 # Node.js
@@ -76,12 +114,19 @@ If the host supports cron and the user wants automation, let the agent create a 
 Example:
 
 ```bash
-# Node.js
-0 2 * * * cd /path/to/memory-decay && node scripts/sync_markdown_index.mjs /path/to/openclaw/memory >> /path/to/memory-decay/memory-decay.log 2>&1
-
 # Python
-0 2 * * * cd /path/to/memory-decay && python3 scripts/sync_markdown_index.py /path/to/openclaw/memory >> /path/to/memory-decay/memory-decay.log 2>&1
+0 2 * * * cd /path/to/memory-decay && python3 scripts/audit_memory_layout.py /path/to/openclaw/memory && python3 scripts/sync_markdown_index.py /path/to/openclaw/memory >> /path/to/memory-decay/memory-decay.log 2>&1
 ```
+
+## HEARTBEAT rules
+
+Heartbeats should not only check index freshness. They should also audit layout hygiene.
+
+During heartbeat:
+1. Run `audit_memory_layout.py`
+2. If stray root markdown files exist, report and organize them before claiming memory is healthy
+3. Check `.memory-decay/index.json` modified time
+4. If the index is missing or older than 48 hours, rebuild it
 
 ## Why this shape
 
@@ -90,8 +135,8 @@ This repository is a skill-style toolkit, not a packaged app.
 - No `package.json`
 - No bundled dependencies
 - No `node_modules`
-- Uses Python standard library only for the index workflow
 - Preserves markdown as the source of truth
+- Adds structure rules, layout audit, and derived retrieval index
 - Keeps retrieval state in a derived cache-like index
 
 ## Memory tiers
@@ -104,10 +149,6 @@ This repository is a skill-style toolkit, not a packaged app.
 | 30d+ | ghost | archived preview only |
 | past ttl | expired | excluded from retrieval |
 
-## Optional domain aliases
-
-You can extend the query script later with domain alias boosting if needed, but the current model keeps the indexing layer simple and explicit.
-
 ## Layout
 
 ```text
@@ -115,7 +156,9 @@ memory-decay/
 ├── SKILL.md
 ├── README.md
 └── scripts/
+    ├── audit_memory_layout.py
+    ├── sync_markdown_index.mjs
     ├── sync_markdown_index.py
-    ├── query_markdown_index.py
-    └── daily-decay.sh
+    ├── query_markdown_index.mjs
+    └── query_markdown_index.py
 ```
