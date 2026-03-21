@@ -60,11 +60,28 @@ def cosine_sim(a, b):
     return 0 if not mag_a or not mag_b else dot / (math.sqrt(mag_a) * math.sqrt(mag_b))
 
 
-def score_entry(q_tokens, entry):
-    summary_score = cosine_sim(q_tokens, term_freq(tokenize(entry.get('summary', ''))))
-    domain_score = cosine_sim(q_tokens, term_freq(tokenize(entry.get('domain', '')))) * 3
+def substring_boost(query, text):
+    """Bonus score if query appears as substring in text (case-insensitive)."""
+    return 0.3 if query.lower() in text.lower() else 0.0
+
+
+def score_entry(q_tokens, entry, raw_query=''):
+    summary_text = entry.get('summary', '')
+    section_text = entry.get('section', '')
+    domain_text = entry.get('domain', '')
+
+    summary_score = cosine_sim(q_tokens, term_freq(tokenize(summary_text)))
+    section_score = cosine_sim(q_tokens, term_freq(tokenize(section_text))) * 2
+    domain_score = cosine_sim(q_tokens, term_freq(tokenize(domain_text))) * 3
+
+    # Substring match boost for exact query presence
+    sub_boost = max(
+        substring_boost(raw_query, summary_text),
+        substring_boost(raw_query, section_text),
+    ) if raw_query else 0.0
+
     tier_w = TIER_WEIGHT.get(entry.get('tier'), 0.5)
-    return (summary_score + domain_score) * tier_w
+    return (summary_score + section_score + domain_score + sub_boost) * tier_w
 
 
 def search(index, query, limit=8):
@@ -73,7 +90,7 @@ def search(index, query, limit=8):
     for entry in index:
         if entry.get('tier') == 'expired':
             continue
-        score = score_entry(q, entry)
+        score = score_entry(q, entry, raw_query=query)
         if score > 0:
             item = dict(entry)
             item['score'] = score
@@ -97,7 +114,7 @@ def scan(index, query):
         domain = entry.get('domain', 'uncategorized')
         domains.setdefault(domain, {'domain': domain, 'count': 0, 'latest': None, 'maxScore': 0})
         domains[domain]['count'] += 1
-        score = score_entry(q, entry)
+        score = score_entry(q, entry, raw_query=query)
         domains[domain]['maxScore'] = max(domains[domain]['maxScore'], score)
         created = entry.get('created')
         if not domains[domain]['latest'] or (created and created > domains[domain]['latest']):

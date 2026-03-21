@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-import json
-import os
-import re
-import sys
-import uuid
+"""
+sync_markdown_index.py — Build a derived index from markdown memory files.
+
+Splits files into sections by ## headings, each section gets its own index
+entry with independent metadata from inline <!-- meta --> tags.
+"""
+import json, os, re, sys, uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -14,172 +16,178 @@ VALID_TTLS = {'3d', '7d', '30d', 'permanent'}
 META_RE = re.compile(r'<!--\s*meta:\s*([^>]*)-->')
 KV_RE = re.compile(r'(type|ttl|confidence)\s*=\s*([^,\s]+)')
 DATE_RE = re.compile(r'(\d{4}-\d{2}-\d{2})')
-
+SKIP_RES = [re.compile(p) for p in [
+    r'^\s*$', r'^#{1,6}\s', r'^<!--', r'^>', r'^---$', r'^_', r'^\[',
+    r'^```', r'^\|\s', r'^-\s-',
+    r'^\*\*[^*]+\*\*\s*[:：]', r'^-\s+\*\*[^*]+\*\*\s*[:：]',
+    r'^(assistant|user|A|system)\s*:', r'^Sender\s', r'^Conversation\s+info',
+    r'^\{', r'^"',
+]]
 
 def fail(msg):
-    print(msg, file=sys.stderr)
-    sys.exit(1)
-
+    print(msg, file=sys.stderr); sys.exit(1)
 
 def find_memory_root(start=None):
-    current = Path(start or os.getcwd()).resolve()
-    for candidate in [current] + list(current.parents):
-        if (candidate / 'memory').is_dir():
-            return candidate / 'memory'
-    return current / 'memory'
+    cur = Path(start or os.getcwd()).resolve()
+    for c in [cur] + list(cur.parents):
+        if (c / 'memory').is_dir(): return c / 'memory'
+    return cur / 'memory'
 
-
-def index_root(memory_root):
-    root = memory_root.parent / INDEX_DIRNAME
-    root.mkdir(parents=True, exist_ok=True)
-    return root
-
-
-def load_index(path):
-    if not path.exists():
-        return []
-    return json.loads(path.read_text(encoding='utf8'))
-
+def index_root(mr):
+    r = mr.parent / INDEX_DIRNAME; r.mkdir(parents=True, exist_ok=True); return r
 
 def save_index(path, entries):
     path.write_text(json.dumps(entries, indent=2, ensure_ascii=False) + '\n', encoding='utf8')
 
-
 def parse_meta(line):
-    match = META_RE.search(line)
-    if not match:
-        return {}
-    meta = {}
-    for key, value in KV_RE.findall(match.group(1)):
-        meta[key] = value.strip()
-    return meta
-
+    m = META_RE.search(line)
+    if not m: return {}
+    return {k: v.strip() for k, v in KV_RE.findall(m.group(1))}
 
 def infer_created(path):
-    match = DATE_RE.search(path.name)
-    if match:
-        return datetime.fromisoformat(match.group(1) + 'T12:00:00+00:00').isoformat().replace('+00:00', 'Z')
-    stat = path.stat()
-    return datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc).isoformat().replace('+00:00', 'Z')
+    return datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc).isoformat().replace('+00:00', 'Z')
 
+def infer_domain(path, mr):
+    try: rel = path.relative_to(mr)
+    except ValueError: return 'general'
+    return rel.parts[0] if len(rel.parts) >= 2 else 'general'
 
-def infer_domain(path, memory_root):
-    try:
-        rel = path.relative_to(memory_root)
-    except ValueError:
-        return 'general'
-    if len(rel.parts) >= 2:
-        return rel.parts[0]
-    return rel.stem.split('-')[0] if '-' in rel.stem else 'general'
+def is_skip(t):
+    return len(t) < 8 or any(p.match(t) for p in SKIP_RES)
 
+def extract_summary(lines, max_len=200):
+    cands = []
+    for l in lines:
+        t = l.strip()
+        if is_skip(t): continue
+        c = re.sub(r'^[-*]\s+', '', t)
+        c = re.sub(r'^\d+\.\s+', '', c)
+        c = c.removeprefix('**').removesuffix('**').strip()
+        if len(c) >= 10: cands.append(c)
+    if not cands: return ''
+    if len(cands[0]) >= 40: return cands[0][:max_len]
+    return '; '.join(cands[:3])[:max_len]
 
-def first_content_line(lines):
-    skip_patterns = [r'^\s*$', r'^#', r'^<!--', r'^>', r'^---$', r'^_', r'^\[', r'^```', r'^\| ', r'^- -$']
-    for line in lines:
-        trimmed = line.strip()
-        if len(trimmed) < 8:
+def split_sections(lines):
+    secs, cur = [], {'heading': None, 'meta': {}, 'lines': [], 'start': 0}
+    for i, line in enumerate(lines):
+        s = line.strip()
+        if s.startswith('## '):
+            if cur['lines'] or cur['heading']: secs.append(cur)
+            cur = {'heading': s.lstrip('#').strip(), 'meta': {}, 'lines': [], 'start': i}
             continue
-        if any(re.match(p, trimmed) for p in skip_patterns):
-            continue
-        clean = re.sub(r'^\d+\.\s*', '', re.sub(r'^-\s+', '', trimmed))
-        clean = clean.removeprefix('**').removesuffix('**').strip()
-        if len(clean) >= 10:
-            return clean[:150]
-    return ''
+        m = parse_meta(s)
+        if m: cur['meta'].update(m); continue
+        cur['lines'].append(line)
+    if cur['lines'] or cur['heading']: secs.append(cur)
+    return secs
 
-
-def parse_markdown_file(path, memory_root):
-    text = path.read_text(encoding='utf8')
-    lines = text.splitlines()
-    meta = {}
-    for line in lines[:12]:
-        maybe = parse_meta(line)
-        if maybe:
-            meta = maybe
-            break
-    mem_type = meta.get('type', 'reference')
+def resolve_meta(meta):
+    t = meta.get('type', 'reference')
     ttl = meta.get('ttl', '30d')
-    confidence_raw = meta.get('confidence', '0.7')
-    try:
-        confidence = float(confidence_raw)
-    except ValueError:
-        confidence = 0.7
-    if mem_type not in VALID_TYPES:
-        mem_type = 'reference'
-    if ttl not in VALID_TTLS:
-        ttl = '30d'
-    confidence = min(max(confidence, 0.0), 1.0)
-
-    return {
-        'id': str(uuid.uuid5(uuid.NAMESPACE_URL, str(path.resolve()))),
-        'source': str(path.resolve()),
-        'sourceType': 'markdown',
-        'created': infer_created(path),
-        'type': mem_type,
-        'domain': infer_domain(path, memory_root),
-        'summary': first_content_line(lines) or path.stem,
-        'ttl': ttl,
-        'confidence': confidence,
-    }
-
+    try: conf = min(max(float(meta.get('confidence', '0.7')), 0.0), 1.0)
+    except ValueError: conf = 0.7
+    if t not in VALID_TYPES: t = 'reference'
+    if ttl not in VALID_TTLS: ttl = '30d'
+    return t, ttl, conf
 
 def age_days(created):
     dt = datetime.fromisoformat(created.replace('Z', '+00:00'))
     return (datetime.now(timezone.utc) - dt).total_seconds() / 86400
 
-
 def parse_ttl(ttl):
-    if ttl == 'permanent':
-        return float('inf')
+    if ttl == 'permanent': return float('inf')
     m = re.match(r'^(\d+)d$', ttl or '')
     return int(m.group(1)) if m else 30
 
-
-def tier_for_age(days):
-    if days <= 3:
-        return 'fresh'
-    if days <= 14:
-        return 'recent'
-    if days <= 30:
-        return 'faded'
+def compute_tier(created, ttl):
+    if ttl == 'permanent': return 'fresh'
+    d = age_days(created)
+    if d > parse_ttl(ttl): return 'expired'
+    if d <= 3: return 'fresh'
+    if d <= 14: return 'recent'
+    if d <= 30: return 'faded'
     return 'ghost'
 
+def collect_files(mr):
+    return sorted(p for p in mr.rglob('*.md') if INDEX_DIRNAME not in p.parts)
 
-def compute_tier(entry):
-    if entry.get('ttl') == 'permanent':
-        return 'fresh'
-    days = age_days(entry['created'])
-    ttl_days = parse_ttl(entry.get('ttl', '30d'))
-    if days > ttl_days:
-        return 'expired'
-    return tier_for_age(days)
+def entry_id(path, idx):
+    return str(uuid.uuid5(uuid.NAMESPACE_URL, f"{path.resolve()}#s{idx}"))
 
+def is_chat_dump_section(sec):
+    """Detect sections that are raw chat logs, not structured memory."""
+    h = (sec['heading'] or '').lower()
+    if 'conversation summary' in h or 'chat log' in h:
+        return True
+    # If most lines start with assistant:/user:/A:/system:, it's a dump
+    content = [l.strip() for l in sec['lines'] if l.strip()]
+    if not content:
+        return False
+    chat_lines = sum(1 for l in content if re.match(r'^(assistant|user|A|system)\s*:', l))
+    return len(content) > 3 and chat_lines / len(content) > 0.4
 
-def collect_markdown_files(memory_root):
-    files = []
-    for path in memory_root.rglob('*.md'):
-        if INDEX_DIRNAME in path.parts:
+def parse_file(path, mr):
+    lines = path.read_text(encoding='utf8').splitlines()
+    secs = split_sections(lines)
+    created = infer_created(path)
+    domain = infer_domain(path, mr)
+    entries = []
+    for i, sec in enumerate(secs):
+        if is_chat_dump_section(sec):
             continue
-        files.append(path)
-    return sorted(files)
+        t, ttl, conf = resolve_meta(sec['meta'])
+        summary = extract_summary(sec['lines'])
+        if not summary and sec['heading']: summary = sec['heading']
+        if not summary: continue
+        entries.append({
+            'id': entry_id(path, i),
+            'source': str(path.resolve()),
+            'sourceType': 'markdown',
+            'section': sec['heading'] or f"section-{i}",
+            'lineStart': sec['start'],
+            'created': created,
+            'type': t, 'domain': domain,
+            'summary': summary,
+            'ttl': ttl, 'confidence': conf,
+            'tier': compute_tier(created, ttl),
+        })
+    return entries
 
+DOMAIN_PRIORITY = {'episodic': 0, 'semantic': 1, 'procedural': 2, 'learnings': 3,
+                    'snapshots': 4, 'general': 5, 'legacy': 8, 'archive': 9}
+
+def dedup_entries(entries):
+    """Remove duplicate entries with same summary, keeping the one from
+    the highest-priority domain (lowest number). Among same domain, keep newer."""
+    seen = {}
+    for e in entries:
+        key = e['summary'][:120]
+        if key not in seen:
+            seen[key] = e
+            continue
+        existing = seen[key]
+        e_pri = DOMAIN_PRIORITY.get(e['domain'], 6)
+        ex_pri = DOMAIN_PRIORITY.get(existing['domain'], 6)
+        if e_pri < ex_pri or (e_pri == ex_pri and e['created'] > existing['created']):
+            seen[key] = e
+    return list(seen.values())
 
 def main():
-    memory_root = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else find_memory_root()
-    if not memory_root.exists():
-        fail(f'memory root not found: {memory_root}')
-
-    idx_root = index_root(memory_root)
-    idx_path = idx_root / INDEX_FILE
-    entries = []
-    for path in collect_markdown_files(memory_root):
-        entry = parse_markdown_file(path, memory_root)
-        entry['tier'] = compute_tier(entry)
-        entries.append(entry)
-
+    mr = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else find_memory_root()
+    if not mr.exists(): fail(f'memory root not found: {mr}')
+    idx_path = index_root(mr) / INDEX_FILE
+    raw = []
+    for p in collect_files(mr):
+        raw.extend(parse_file(p, mr))
+    entries = dedup_entries(raw)
     save_index(idx_path, entries)
-    print(f'Indexed {len(entries)} markdown memories into {idx_path}')
-
+    tiers = {}
+    for e in entries: tiers[e['tier']] = tiers.get(e['tier'], 0) + 1
+    deduped = len(raw) - len(entries)
+    print(f'Indexed {len(entries)} sections from {len(collect_files(mr))} files into {idx_path}')
+    if deduped: print(f'Deduped: {deduped} duplicate entries removed')
+    print(f'Tiers: {json.dumps(tiers)}')
 
 if __name__ == '__main__':
     main()
