@@ -6,6 +6,7 @@ It provides:
 - metadata tagging rules for markdown memories (`type`, `ttl`, `confidence`)
 - memory layout rules for markdown directories
 - a layout audit for root-level memory hygiene
+- an optional one-shot fixer for stray root files
 - time-based decay (`fresh -> recent -> faded -> ghost -> expired`)
 - a local index built from markdown memory files
 - keyword search with domain scanning
@@ -21,6 +22,7 @@ This toolkit does not create a competing memory system. Instead, it defines:
 - where memory files should live
 - how memory metadata should be tagged
 - how to audit structure hygiene
+- how to repair common layout drift
 - how to build a derived retrieval index from markdown files
 
 ## Required memory layout
@@ -73,15 +75,22 @@ python3 scripts/audit_memory_layout.py /path/to/openclaw/memory
 
 If stray root markdown files appear, move them out of `memory/` root before calling setup complete.
 
+Quick repair:
+
+```bash
+python3 scripts/audit_memory_layout.py --fix /path/to/openclaw/memory
+```
+
+Repair policy:
+- `YYYY-MM-DD.md` -> `memory/episodic/`
+- other root markdown files -> `memory/legacy/`
+- collisions auto-suffix instead of overwriting
+
 ### 3. Build the index
 
 Run this once after installation, and again whenever you want to refresh the index:
 
 ```bash
-# Node.js
-node scripts/sync_markdown_index.mjs /path/to/openclaw/memory
-
-# Python
 python3 scripts/sync_markdown_index.py /path/to/openclaw/memory
 ```
 
@@ -91,15 +100,15 @@ This creates a derived index in:
 .memory-decay/index.json
 ```
 
+Default indexing behavior:
+- fails fast when `memory/` root is dirty
+- excludes `memory/legacy/` and `memory/archive/`
+- accepts `--allow-dirty` only for debugging
+- accepts `--include-legacy` only when you intentionally want archived content indexed
+
 ### 4. Query the index
 
 ```bash
-# Node.js
-node scripts/query_markdown_index.mjs search "billing"
-node scripts/query_markdown_index.mjs scan "deploy"
-node scripts/query_markdown_index.mjs focus semantic
-
-# Python
 python3 scripts/query_markdown_index.py search "billing"
 python3 scripts/query_markdown_index.py scan "deploy"
 python3 scripts/query_markdown_index.py focus semantic
@@ -114,8 +123,7 @@ If the host supports cron and the user wants automation, let the agent create a 
 Example:
 
 ```bash
-# Python
-0 2 * * * cd /path/to/memory-decay && python3 scripts/audit_memory_layout.py /path/to/openclaw/memory && python3 scripts/sync_markdown_index.py /path/to/openclaw/memory >> /path/to/memory-decay/memory-decay.log 2>&1
+0 2 * * * cd /path/to/memory-decay && python3 scripts/audit_memory_layout.py --fix /path/to/openclaw/memory && python3 scripts/sync_markdown_index.py /path/to/openclaw/memory >> /path/to/memory-decay/memory-decay.log 2>&1
 ```
 
 ## HEARTBEAT rules
@@ -123,8 +131,8 @@ Example:
 Heartbeats should not only check index freshness. They should also audit layout hygiene.
 
 During heartbeat:
-1. Run `audit_memory_layout.py`
-2. If stray root markdown files exist, report and organize them before claiming memory is healthy
+1. Run `audit_memory_layout.py --fix`
+2. If stray root markdown files existed, report what was moved before claiming memory is healthy
 3. Check `.memory-decay/index.json` modified time
 4. If the index is missing or older than 48 hours, rebuild it
 
@@ -157,8 +165,6 @@ memory-decay/
 ├── README.md
 └── scripts/
     ├── audit_memory_layout.py
-    ├── sync_markdown_index.mjs
     ├── sync_markdown_index.py
-    ├── query_markdown_index.mjs
-    └── query_markdown_index.py
+    ├── query_markdown_index.py
 ```
